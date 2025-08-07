@@ -1,2 +1,3 @@
 # IMY-220-Project
-IMY 220 Semester Projects
+My name is Luyanda Ndlovu, studnet no. 24580717.
+This is my IMY 220 project repo.
