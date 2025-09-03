@@ -1,0 +1,35 @@
+{
+  "name": "u24580717_d1",
+  "version": "2.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./backend/server.js",
+    "build:frontend": "webpack",
+    "dev": "npm run build:frontend && npm start",
+    "dev:frontend": "webpack serve --open",
+    "dev:watch": "webpack --watch",
+    "dev:backend": "nodemon ./backend/server.js",
+    "dev:full": "npm run dev:watch & npm run dev:backend"
+  },
+  "author": "Luyanda Ndlovu",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "babel-loader": "^10.0.0",
+    "css-loader": "^7.1.2",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  }
+}
