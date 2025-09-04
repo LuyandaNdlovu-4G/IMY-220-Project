@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import LeftPanel from '../components/LeftPanel';
-import ActivityFeed from '../components/ActivityFeed'; // Import the new component
+import ActivityFeed from '../components/ActivityFeed';
 
 function HomePage() {
-  // Dummy data for projects and activity feed
-  const projects = [
+  const [projects, setProjects] = useState([
     { name: 'Project 1', id: 'luyanda-project-1', owner: 'LuyandaNdlovu-4G' },
     { name: 'Project 2', id: 'luyanda-project-2', owner: 'LuyandaNdlovu-4G' },
-  ];
+  ]);
 
   const activityFeedData = [
     {
@@ -29,13 +28,25 @@ function HomePage() {
     },
   ];
 
+  const handleNewProject = (projectName) => {
+    const newProject = {
+      name: projectName,
+      id: projectName.toLowerCase().replace(/\s/g, '-'),
+      owner: 'LuyandaNdlovu-4G',
+    };
+    setProjects([...projects, newProject]);
+  };
+
   return (
     <div className="home-page">
       <Header />
       <div className="main-content">
-        <LeftPanel projects={projects} />
+        <LeftPanel 
+          projects={projects} 
+          onNewProject={handleNewProject} 
+        />
         <div className="right-panel">
-          <ActivityFeed activities={activityFeedData} title="Activity Feed" />
+          <ActivityFeed activities={activityFeedData} />
         </div>
       </div>
     </div>

@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import Header from '../components/Header';
 import ProjectCard from '../components/ProjectCard';
 import CreateProjectPopup from '../components/CreateProjectPopup';
+import usePopup from '../hooks/usePopup';
 
 function ProjectsPage() {
-  const [showPopup, setShowPopup] = useState(false);
+  const { isPopupVisible, showPopup, hidePopup } = usePopup();
 
   // Dummy data for all user projects
   const [projectsData, setProjectsData] = useState([
@@ -22,7 +23,7 @@ function ProjectsPage() {
       owner: 'LuyandaNdlovu-4G'
     };
     setProjectsData([...projectsData, newProject]);
-    setShowPopup(false); // Close the popup
+    hidePopup();
   };
 
   return (
@@ -32,7 +33,7 @@ function ProjectsPage() {
         <div className="content-container">
           <div className="projects-header">
             <h1>Your Projects</h1>
-            <button onClick={() => setShowPopup(true)} className="btn new-project-btn">+ new project</button>
+            <button onClick={showPopup} className="btn new-project-btn">+ new project</button>
           </div>
           <div className="projects-list">
             {projectsData.map((project) => (
@@ -41,9 +42,9 @@ function ProjectsPage() {
           </div>
         </div>
       </div>
-      {showPopup && (
+      {isPopupVisible && (
         <CreateProjectPopup
-          onClose={() => setShowPopup(false)}
+          onClose={hidePopup}
           onCreate={handleCreateProject}
         />
       )}
