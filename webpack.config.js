@@ -4,9 +4,11 @@ module.exports = {
     entry: "./frontend/src/index.js",
     output: {
         path: path.resolve(__dirname, "./frontend/public"),
-        filename: "bundle.js"
+        filename: "bundle.js",
+        publicPath: "/"
     },
     mode: "development",
+    devtool: "inline-source-map",
     module: {
         rules: [
             {
@@ -32,6 +34,20 @@ module.exports = {
         port: 3001,
         open: true,
         hot: true,
-        historyApiFallback: true
+        liveReload: true,
+        historyApiFallback: {
+            index: '/index.html'
+        },
+        watchFiles: [
+            'frontend/src/**/*',
+            'frontend/public/**/*'
+        ],
+        compress: true,
+        client: {
+            overlay: {
+                errors: true,
+                warnings: false,
+            },
+        }
     }
 }

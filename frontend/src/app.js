@@ -1,22 +1,18 @@
 import React from 'react';
-import './css/style.css';
+import { Routes, Route } from 'react-router-dom';
+import SplashPage from './pages/SplashPage.js';
+import HomePage from './pages/HomePage.js';
+import ProjectsPage from './pages/ProjectsPage.js'; // Import the new component
+import ProjectView from './pages/ProjectView.js';
 
-// This is the main component of your application.
-// You can build out your entire user interface here.
 function App() {
   return (
-    <div style={{
-      textAlign: 'center',
-      padding: '2rem',
-      backgroundColor: '#fff',
-      borderRadius: '8px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      maxWidth: '600px',
-      margin: '2rem'
-    }}>
-      <h1>Hello, React World!</h1>
-      <p style={{ color: '#4a5568' }}>This is a simple React component rendered with Webpack and Babel.</p>
-    </div>
+    <Routes>
+      <Route path="/" element={<SplashPage />} />
+      <Route path="/home" element={<HomePage />} />
+      <Route path="/projects" element={<ProjectsPage />} /> {/* Corrected route */}
+      <Route path="/projects/:id" element={<ProjectView />} />
+    </Routes>
   );
 }
 

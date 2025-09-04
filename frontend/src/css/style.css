@@ -1,3 +1,401 @@
-h1{
-    color: #7b93be;
+@font-face {
+  font-family: 'Inter';
+  /* Correct path is relative to the CSS file's location */
+  src: url('../../public/assets/fonts/Inter/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: normal;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  background-color: #0A0A0A;
+}
+
+/* =========================================================navbar================================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #121212;
+  color: #E5E5E5;
+}
+
+.left-group {
+  display: flex;
+  align-items: center;
+  gap: 4rem; /* Spacing between the logo and navigation links */
+}
+
+.nav-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 3rem; /* Spacing between the individual links */
+}
+
+.nav-links ul a {
+  color: #E5E5E5;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+/* User actions for logged-out state */
+.user-actions-logged-out {
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* User actions for logged-in state */
+.user-actions-logged-in {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-input {
+  padding: 0.5rem;
+  border-radius: 400px;
+  border: 1px solid #333;
+  background-color: #222;
+  color: #E5E5E5;
+  align-items: center;
+}
+
+.profile-link {
+  text-decoration: none;
+  color: #E5E5E5;
+}
+
+.btn {
+    background-color: #38aaf8;
+  padding: 0.5rem 1rem;
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #E5E5E5;
+}
+
+.btn.sign-out-btn {
+  background-color: #dc3545;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+}
+
+.btn.login-btn,
+.btn.signup-btn {
+  border: 1px solid #3B82F6;
+}
+
+/* Hide the search bar on smaller screens */
+@media (max-width: 768px) {
+  .search-input {
+    display: none;
+  }
+}
+
+.logo-img {
+  height: 2rem;
+  width: auto;
+}
+
+
+/* =========================================================splash page================================= */
+.splash-page {
+  text-align: center;
+  color: #E5E5E5;
+  background-color: #0A0A0A;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.splash-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.splash-content {
+  margin-top: 7rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.splash-content h2 {
+  font-size: 2rem;
+  color: #E5E5E5;
+}
+
+.splash-content .subtitle {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  line-height:2 ;
+  padding-bottom: 3rem;
+}
+
+
+.btn.get-started-btn {
+  background-color: #38aaf8;
+  color: #E5E5E5;
+  font-weight: bold;
+  border: 2px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.btn.get-started-btn:hover {
+  opacity: 0.8;
+}
+
+.splash-logo-img {
+  height: 4rem;
+  width: auto;
+  margin-bottom: 2rem; /* Add some space below the logo */
+}
+
+/* =========================================================home page================================= */
+
+.home-page .main-content {
+  display: flex;
+  justify-content: space-between;
+  padding: 2rem;
+  gap: 4rem;
+  background-color: #0A0A0A;
+  min-height: calc(100vh - 74px); /* Adjust based on header height */
+  color: #E5E5E5;
+}
+
+.home-page .left-panel,
+.home-page .right-panel {
+  background-color: #1A1A1A;
+  padding: 2rem;
+  border: 2px solid #2A2A2A;
+  border-radius: 1px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.home-page .left-panel {
+  flex: 1;
+}
+
+.home-page .right-panel {
+  flex: 2;
+}
+
+.home-page h3 {
+  margin-top: 2rem;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sort-btn {
+  cursor: pointer;
+  text-transform: uppercase;
+  border: none;
+}
+
+/* =============================project card styles================================= */
+
+.new-project-btn {
+  color: #E5E5E5;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.projects-list .project-card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2A2A2A;
+}
+
+.project-card h4 {
+  margin: 0;
+  color: #E5E5E5;
+}
+
+.project-card p {
+  margin: 0;
+  color: #E5E5E5;
+  font-size: 1rem;
+}
+
+.view-btn {
+  background-color: #333;
+  color: #E5E5E5;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.project-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =============================activity cards=========================== */
+
+.activity-card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  background-color: #2A2A2A;
+}
+
+.activity-card p {
+  margin: 0.25rem 0;
+}
+
+.tags {
+  margin-top: 0.5rem;
+}
+
+.tag-item {
+  background-color: #6b54ce52;
+  color: #60A5FA;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-right: 0.2rem;
+  margin-left: 0.5rem;
+}
+
+.activity-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+/* ===============================project view =========================== */
+
+.project-view-page .main-content {
+  display: flex;
+  padding: 2rem;
+  gap: 2rem;
+  background-color: #0A0A0A;
+  min-height: calc(100vh - 74px);
+  color: #E5E5E5;
+}
+
+.project-view-page .left-panel {
+  flex: 1;
+  padding: 2rem;
+  background-color: #2A2A2A;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.project-view-page .right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Back link */
+.back-link {
+  text-decoration: none;
+  color: #3B82F6;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Project Files Section */
+.project-files {
+  margin-top: 2rem;
+  border: 2px solid #cccccc3f;
+  padding: 1rem;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #cccccc3f;
+  border-radius: 4px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.check-in-btn,
+.check-out-btn {
+  background-color: #478af7;
+  color: #E5E5E5;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.edit-btn {
+  color: #E5E5E5;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Project Members Section */
+.project-members {
+  margin-top: 2rem;
+}
+
+.member-item {
+  display: flex; 
+  align-items: center; 
+  gap: 1rem; 
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+.user-icon {
+  width: 50px; 
+  height: 50px;
+  border-radius: 50%; /* This is the key to making the image round */
+}
+
+/* Project Details Section */
+.project-details {
+  padding: 2rem;
+  background-color: #2A2A2A;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
