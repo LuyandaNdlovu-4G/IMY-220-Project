@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+//this header has the post login logic, so the header updates depending on the login state.
+//unlike the auth-header which is used to show login or signup options only
+
 
 function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -26,7 +29,9 @@ function Header() {
         <div className="user-actions-logged-in">
           <input type="text" placeholder="Search..." className="search-input" />
           <Link to="/profile" className="profile-link">LuyandaNdlovu-4G</Link>
-          <button onClick={handleLogout} className="btn sign-out-btn">sign out</button>
+          <Link to="/profile">
+            <img src="/assets/images/User Icon.png" alt="User Icon" className="user-icon" />
+          </Link>
         </div>
       ) : (
         <div className="user-actions-logged-out">

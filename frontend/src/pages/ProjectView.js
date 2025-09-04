@@ -2,8 +2,8 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import ProjectFiles from '../components/ProjectFiles';
-import ProjectInfo from '../components/ProjectInfo'; // Import the new component
-import ActivityCard from '../components/ActivityCard';
+import ProjectInfo from '../components/ProjectInfo';
+import ActivityFeed from '../components/ActivityFeed'; // Import the new component
 
 function ProjectView() {
   const { id } = useParams();
@@ -28,7 +28,7 @@ function ProjectView() {
     { name: 'Sarah_PG', role: '' }
   ];
 
-  const activityFeed = [
+  const activityFeedData = [
     { user: 'Sarah_PG', action: 'Checked out...', project: 'Project 1', project_id: 'luyanda-project-1', time: '2025/06/11', tags: [] },
     { user: 'LuyandaNdlovu-4G', action: 'checked in...', project: 'Project 1', project_id: 'luyanda-project-1', time: '2025/06/11', tags: [] }
   ];
@@ -41,15 +41,7 @@ function ProjectView() {
           <Link to="/projects" className="back-link"> &lt; back to projects</Link>
           <h1>{project.title}</h1>
           <ProjectFiles files={files} />
-          
-          <div className="activity-feed-section">
-            <h2>Activity Feed</h2>
-            <div className="activity-feed">
-              {activityFeed.map((activity, index) => (
-                <ActivityCard key={index} activity={activity} />
-              ))}
-            </div>
-          </div>
+          <ActivityFeed activities={activityFeedData} title="Activity Feed" />
         </div>
         <div className="right-panel">
           <ProjectInfo project={project} members={members} />

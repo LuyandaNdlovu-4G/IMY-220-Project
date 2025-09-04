@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 import LeftPanel from '../components/LeftPanel';
-import ActivityCard from '../components/ActivityCard';
+import ActivityFeed from '../components/ActivityFeed'; // Import the new component
 
 function HomePage() {
   // Dummy data for projects and activity feed
@@ -10,7 +10,7 @@ function HomePage() {
     { name: 'Project 2', id: 'luyanda-project-2', owner: 'LuyandaNdlovu-4G' },
   ];
 
-  const activityFeed = [
+  const activityFeedData = [
     {
       user: 'LuyandaNdlovu-4G',
       action: 'checked in changes to DevAPI',
@@ -22,8 +22,8 @@ function HomePage() {
     {
       user: 'LuyandaNdlovu-4G',
       action: 'made changes to cat class',
-      project_id: 'luyanda-project-2',
       project: 'Project 2',
+      project_id: 'luyanda-project-2',
       time: '2025-08-05 13:56:04',
       tags: ['Java', 'COS212']
     },
@@ -35,15 +35,7 @@ function HomePage() {
       <div className="main-content">
         <LeftPanel projects={projects} />
         <div className="right-panel">
-          <div className="activity-header">
-            <h2>Activity Feed</h2>
-            <button className="btn sort-btn">sort</button>
-          </div>
-          <div className="activity-feed">
-            {activityFeed.map((activity, index) => (
-              <ActivityCard key={index} activity={activity} />
-            ))}
-          </div>
+          <ActivityFeed activities={activityFeedData} title="Activity Feed" />
         </div>
       </div>
     </div>
