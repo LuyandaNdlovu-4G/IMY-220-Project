@@ -1,18 +1,15 @@
-# Ignore node_modules
 node_modules/
-blog-backend/node_modules/
-blog_frontend/node_modules/
 
-# Ignore environment files
-.env
-.env.local
-.env.*.local
-
-# Ignore Docker files
-Dockerfile
-docker-compose.yml
+npm-debug.log
 *.log
 
-# Ignore OS-specific files
+dist/
+build/
+
+.env
+.env.*
+
+.vscode/
+
 .DS_Store
 Thumbs.db

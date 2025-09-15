@@ -1,9 +1,14 @@
 node_modules/
+
 npm-debug.log
 *.log
+
 .git
 .gitignore
+
 .dockerignore
+
 .vscode/
+
 .env
 .env.*

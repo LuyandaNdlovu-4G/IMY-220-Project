@@ -1,14 +1,18 @@
 const path = require("path");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { webpack } = require("webpack");
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: "./frontend/src/index.js",
+  
     output: {
-        path: path.resolve(__dirname, "./frontend/public"),
+        path: path.resolve(__dirname, "./frontend/dist"),
         filename: "bundle.js",
         publicPath: "/"
     },
-    mode: "development",
-    devtool: "inline-source-map",
+
+    mode: "production",
     module: {
         rules: [
             {
@@ -27,27 +31,17 @@ module.exports = {
     resolve: {
         extensions: ['.js', '.jsx']
     },
-    devServer: {
-        static: {
-            directory: path.join(__dirname, './frontend/public'),
-        },
-        port: 3001,
-        open: true,
-        hot: true,
-        liveReload: true,
-        historyApiFallback: {
-            index: '/index.html'
-        },
-        watchFiles: [
-            'frontend/src/**/*',
-            'frontend/public/**/*'
-        ],
-        compress: true,
-        client: {
-            overlay: {
-                errors: true,
-                warnings: false,
-            },
-        }
-    }
-}
+    plugins: [
+        // This plugin copies your index.html file to the output directory
+        new HtmlWebpackPlugin({
+            template: './frontend/public/index.html',
+            filename: 'index.html', 
+        }),
+
+        new CopyPlugin({
+            patterns: [
+                { from: 'frontend/public/assets', to: 'assets'},
+            ],
+        }),
+    ],
+};
