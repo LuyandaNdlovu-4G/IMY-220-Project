@@ -1,25 +1,30 @@
 const path = require("path");
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { webpack } = require("webpack");
-const CopyPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-    entry: "./frontend/src/index.js",
-  
+    entry: path.resolve(__dirname, "./frontend/src/index.js"),
+
     output: {
         path: path.resolve(__dirname, "./frontend/dist"),
         filename: "bundle.js",
         publicPath: "/"
     },
 
-    mode: "production",
+    mode: "production", // change to "production" for production builds
+
     module: {
         rules: [
             {
-                test: /\.js$/,
+                test: /\.(js|jsx)$/, // handle both .js and .jsx files
                 exclude: /node_modules/,
                 use: {
-                    loader: "babel-loader"
+                    loader: "babel-loader",
+                    options: {
+                        presets: [
+                            "@babel/preset-env",
+                            "@babel/preset-react"
+                        ]
+                    }
                 }
             },
             {
@@ -28,20 +33,15 @@ module.exports = {
             }
         ]
     },
-    resolve: {
-        extensions: ['.js', '.jsx']
-    },
-    plugins: [
-        // This plugin copies your index.html file to the output directory
-        new HtmlWebpackPlugin({
-            template: './frontend/public/index.html',
-            filename: 'index.html', 
-        }),
 
-        new CopyPlugin({
-            patterns: [
-                { from: 'frontend/public/assets', to: 'assets'},
-            ],
-        }),
+    resolve: {
+        extensions: [".js", ".jsx"]
+    },
+
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, "./frontend/public/index.html"),
+            filename: "index.html"
+        })
     ],
 };

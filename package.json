@@ -1,5 +1,6 @@
 {
   "name": "u24580717_d1",
+  "proxy": "http://localhost:3000",
   "version": "2.0.0",
   "main": "index.js",
   "scripts": {
@@ -15,10 +16,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "connect-mongodb-session": "^5.0.0",
     "dotenv": "^17.2.2",
     "express": "^4.21.1",
-    "jsonwebtoken": "^9.0.2",
+    "express-session": "^1.18.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.2",
     "react": "^18.3.1",

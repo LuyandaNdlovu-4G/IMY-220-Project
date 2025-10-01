@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import AuthHeader from '../components/AuthHeader';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext'; 
 
 function SignUpPage() {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   // State for form inputs
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -48,15 +53,31 @@ function SignUpPage() {
     return isValid;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault(); // Prevents the form from reloading the page
     
     if (handleValidation()) {
-      alert('Sign up successful!');
-      console.log('Submitting:', { username, email, password });
-    } else {
-      console.log('Validation failed.');
-    }
+      try{
+        const response = await fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if(response.ok){
+          //Auto login
+          login({ id: data.userId, username, email });
+          navigate('/home');
+        } else{
+          alert(data.message || 'Signup failed');
+        }
+      } catch (err){
+        console.error(err);
+        alert('Network error. Please try again.')
+      }
+    } 
   };
 
   return (

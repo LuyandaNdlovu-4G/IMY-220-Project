@@ -15,7 +15,7 @@ function SplashContent() {
                 Check in and out. Track changes. Stay in sync <br/>
                 Your personal developer hub clean, fast and secure.
             </p>
-            <Link to="/home" className="btn get-started-btn">
+            <Link to="/signup" className="btn get-started-btn">
                 Get Started
             </Link>
         </main>
