@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext'; 
 
 function SignUpPage() {
-  const { login } = useContext(AuthContext);
+  const { signup } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // State for form inputs
@@ -53,32 +53,18 @@ function SignUpPage() {
     return isValid;
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevents the form from reloading the page
-    
-    if (handleValidation()) {
-      try{
-        const response = await fetch('/api/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password })
-        });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!handleValidation()) return;
 
-        const data = await response.json();
-
-        if(response.ok){
-          //Auto login
-          login({ id: data.userId, username, email });
-          navigate('/home');
-        } else{
-          alert(data.message || 'Signup failed');
-        }
-      } catch (err){
-        console.error(err);
-        alert('Network error. Please try again.')
-      }
-    } 
+    try {
+      await signup({ username, email, password });
+      navigate("/home");
+    } catch (err) {
+      alert(err.message);
+    }
   };
+
 
   return (
     <div className="auth-page">

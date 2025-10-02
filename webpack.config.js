@@ -44,4 +44,14 @@ module.exports = {
             filename: "index.html"
         })
     ],
+
+    devServer: {
+        proxy: {
+            "/api" : {
+                target: "http://localhost:3000",
+                changeOrigin: true,
+                credentials: "include"
+            }
+        }
+    }
 };

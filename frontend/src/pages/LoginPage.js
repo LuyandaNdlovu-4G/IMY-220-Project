@@ -12,24 +12,13 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.user); // data.user has id, username, email
-        navigate("/home");
-      } else {
-        alert(data.message);
-      }
+      await login({ email, password });
+      navigate("/home");
     } catch (err) {
-      alert("Login failed. Please try again.");
+      alert(err.message);
     }
   };
+
 
   return (
     <div className="auth-page">

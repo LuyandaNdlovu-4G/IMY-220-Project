@@ -6,6 +6,11 @@ import CreateProjectPopup from './CreateProjectPopup';
 function LeftPanel({ projects, onNewProject }) {
   const { isPopupVisible, showPopup, hidePopup } = usePopup();
 
+  const handleCreate = (projectName) => {
+    onNewProject(projectName); // call HomePage’s handler
+    hidePopup(); // hide popup after creation
+  };
+
   return (
     <div className="left-panel">
       <button onClick={showPopup} className="btn new-project-btn">+ new project</button>
@@ -20,7 +25,7 @@ function LeftPanel({ projects, onNewProject }) {
       {isPopupVisible && (
         <CreateProjectPopup
           onClose={hidePopup}
-          onCreate={onNewProject}
+          onCreate={handleCreate}
         />
       )}
     </div>

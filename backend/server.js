@@ -32,6 +32,15 @@ app.use(session({
     }
 }));
 
+
+const cors = require("cors");
+app.use(cors({
+    origin: "http://localhost:8080", //frontend URL
+    credentials: true
+}));
+
+
+
 // Connect to database
 connectDB().then(() => {
     app.locals.users = getCollection("users");
@@ -158,6 +167,7 @@ app.post("/api/projects", auth, async (req, res) => {
     try {
         const projects = req.app.locals.projects;
         const users = req.app.locals.users;
+        const activities = req.app.locals.activities;
 
         if (!projects || !users) {
             return res.status(500).json({ message: "Database not initialized." });
@@ -193,6 +203,15 @@ app.post("/api/projects", auth, async (req, res) => {
             { _id: new ObjectId(req.user._id) },
             { $push: { createdProjects: result.insertedId } }
         );
+
+        await activities.insertOne({
+          user: new ObjectId(req.user._id),
+          project: result.insertedId,
+          type: "project_created",
+          message: `${req.user.username} created project "${projectName}"`,
+          version: version || "v1.0.0",
+          createdAt: new Date()
+        });
 
         res.status(201).json({
             message: "Project created successfully!",
@@ -265,7 +284,7 @@ app.get("/api/projects/mine", auth, async (req, res) => {
     const users = req.app.locals.users;
 
     const results = await projects
-      .find({ "members.user": ObjectId(req.user._id) })
+      .find({ "members.user": new ObjectId(req.user._id) })
       .toArray();
 
     const populatedProjects = await Promise.all(
@@ -518,7 +537,7 @@ app.post("/api/friends", auth, async (req, res) => {
     }
 
     await users.updateOne(
-      { _id: ObjectId(req.user._id) },
+      { _id: new ObjectId(req.user._id) },
       { $push: { friends: friend._id } }
     );
 
@@ -612,138 +631,29 @@ app.get("/api/friends/:id/projects", auth, async (req, res) => {
 });
 
 
-// DELETE (UN-FRIEND)
-app.delete("/api/friends/:friendId", auth, async (req, res) => {
-  try {
-    const users = req.app.locals.users;
-
-    await users.updateOne(
-      { _id: ObjectId(req.user._id) },
-      { $pull: { friends: ObjectId(req.params.friendId) } }
-    );
-
-    res.json({ message: "Unfriended successfully." });
-  } catch (err) {
-    console.error("Unfriend error:", err);
-    res.status(500).json({ message: "Failed to unfriend." });
-  }
-});
-
-
-// PUT - UPDATE PROJECT (owner only)
-app.put("/api/projects/:id", auth, async (req, res) => {
-  const { projectName, description, hashtags, type, version } = req.body;
-  const projectId = req.params.id;
-
-  try {
-    const projects = req.app.locals.projects;
-
-    const project = await projects.findOne({ _id: ObjectId(projectId) });
-    if (!project) {
-      return res.status(404).json({ message: "Project not found." });
-    }
-
-    if (project.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Only the owner can edit this project." });
-    }
-
-    const updateFields = {};
-    if (projectName !== undefined) updateFields.projectName = projectName.trim();
-    if (description !== undefined) updateFields.description = description.trim();
-    if (hashtags !== undefined) updateFields.hashtags = Array.isArray(hashtags)
-      ? hashtags.map(tag => tag.toLowerCase().trim())
-      : [];
-    if (type !== undefined) updateFields.type = type;
-    if (version !== undefined) updateFields.version = version;
-    updateFields.updatedAt = new Date();
-
-    await projects.updateOne(
-      { _id: ObjectId(projectId) },
-      { $set: updateFields }
-    );
-
-    const updatedProject = await projects.findOne({ _id: ObjectId(projectId) });
-
-    res.json({
-      message: "Project updated successfully!",
-      project: {
-        id: updatedProject._id.toString(),
-        projectName: updatedProject.projectName,
-        description: updatedProject.description,
-        hashtags: updatedProject.hashtags,
-        type: updatedProject.type,
-        version: updatedProject.version,
-        updatedAt: updatedProject.updatedAt
-      }
-    });
-  } catch (err) {
-    console.error("Update project error:", err);
-    res.status(500).json({ message: "Failed to update project." });
-  }
-});
-
-
 // DELETE PROJECT (owner only)
 app.delete("/api/projects/:id", auth, async (req, res) => {
   try {
     const projects = req.app.locals.projects;
     const users = req.app.locals.users;
 
-    const project = await projects.findOne({ _id: ObjectId(req.params.id) });
+    const project = await projects.findOne({ _id: new ObjectId(req.params.id) });
     if (!project) return res.status(404).json({ message: "Project not found." });
 
     if (project.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Only owner can delete." });
     }
 
-    await projects.deleteOne({ _id: ObjectId(req.params.id) });
+    await projects.deleteOne({ _id: new ObjectId(req.params.id) });
     await users.updateOne(
-      { _id: ObjectId(project.owner) },
-      { $pull: { createdProjects: ObjectId(req.params.id) } }
+      { _id: new ObjectId(project.owner) },
+      { $pull: { createdProjects: new ObjectId(req.params.id) } }
     );
 
     res.json({ message: "Project deleted." });
   } catch (err) {
     console.error("Delete project error:", err);
     res.status(500).json({ message: "Failed to delete project." });
-  }
-});
-
-
-// GET - SEARCH
-app.get("/api/search", async (req, res) => {
-  try {
-    const { q, type } = req.query;
-    const users = req.app.locals.users;
-    const projects = req.app.locals.projects;
-
-    if (type === "user") {
-      const matchedUsers = await users.find({
-        $or: [
-          { username: { $regex: q, $options: "i" } },
-          { email: { $regex: q, $options: "i" } }
-        ]
-      }).project({ username: 1, email: 1 }).toArray();
-
-      return res.json(matchedUsers);
-    } else {
-      const matchedProjects = await projects.find({
-        $or: [
-          { projectName: { $regex: q, $options: "i" } },
-          { hashtags: q.toLowerCase() }
-        ]
-      }).project({
-        projectName: 1,
-        description: 1,
-        type: 1,
-        hashtags: 1
-      }).toArray();
-
-      return res.json(matchedProjects);
-    }
-  } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).json({ message: "Failed to perform search." });
   }
 });
 
@@ -815,33 +725,6 @@ app.put("/api/projects/:id", auth, async (req, res) => {
   } catch (err) {
     console.error("Update project error:", err);
     res.status(500).json({ message: "Failed to update project." });
-  }
-});
-
-
-// DELETE PROJECT (owner only)
-app.delete("/api/projects/:id", auth, async (req, res) => {
-  try {
-    const projects = req.app.locals.projects;
-    const users = req.app.locals.users;
-
-    const project = await projects.findOne({ _id: ObjectId(req.params.id) });
-    if (!project) return res.status(404).json({ message: "Project not found." });
-
-    if (project.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Only owner can delete." });
-    }
-
-    await projects.deleteOne({ _id: ObjectId(req.params.id) });
-    await users.updateOne(
-      { _id: ObjectId(project.owner) },
-      { $pull: { createdProjects: ObjectId(req.params.id) } }
-    );
-
-    res.json({ message: "Project deleted." });
-  } catch (err) {
-    console.error("Delete project error:", err);
-    res.status(500).json({ message: "Failed to delete project." });
   }
 });
 
@@ -1061,9 +944,9 @@ app.get("/api/activity/local", auth, async (req, res) => {
     const users = req.app.locals.users;
     const activities = req.app.locals.activities;
 
-    const user = await users.findOne({ _id: ObjectId(req.user._id) });
-    const friendIds = user.friends ? user.friends.map(f => ObjectId(f)) : [];
-    const userIds = [ObjectId(req.user._id), ...friendIds];
+    const user = await users.findOne({ _id: new ObjectId(req.user._id) });
+    const friendIds = user.friends ? user.friends.map(f => new ObjectId(f)) : [];
+    const userIds = [new ObjectId(req.user._id), ...friendIds];
 
     const results = await activities.aggregate([
       { $match: { user: { $in: userIds } } },
