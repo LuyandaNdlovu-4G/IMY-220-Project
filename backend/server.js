@@ -83,18 +83,20 @@ app.post("/api/signup", async (req, res) => {
             createdProjects: []
         });
 
-        // Store userId in session
-        req.session.userId = result.insertedId.toString();
-
         res.status(201).json({
             message: "User created successfully!",
-            userId: result.insertedId.toString()
+            user: {
+                id: result.insertedId.toString(),
+                username: username.trim(),
+                email: email.trim()
+            }
         });
     } catch (err) {
         console.error("Signup error:", err.stack);
         res.status(500).json({ message: "Server error while signing up." });
     }
 });
+
 
 // POST - LOGIN
 app.post("/api/login", async (req, res) => {
@@ -136,6 +138,7 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
+
 // GET logged-in user
 app.get("/api/users/me", auth, (req, res) => {
     res.json({
@@ -144,6 +147,7 @@ app.get("/api/users/me", auth, (req, res) => {
         email: req.user.email
     });
 });
+
 
 // POST - LOGOUT
 app.post("/api/logout", (req, res) => {
@@ -155,6 +159,7 @@ app.post("/api/logout", (req, res) => {
         res.json({ message: "Logged out successfully." });
     });
 });
+
 
 // POST - CREATE PROJECT
 app.post("/api/projects", auth, async (req, res) => {
