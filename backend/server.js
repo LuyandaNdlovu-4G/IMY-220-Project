@@ -37,8 +37,8 @@ app.use(session({
 
 const cors = require("cors");
 app.use(cors({
-    origin: "http://localhost:3001", //frontend URL
-    credentials: true
+  origin: "http://localhost:8080", // Explicitly allow frontend URL
+  credentials: true
 }));
 
 //handle image uploads

@@ -1,9 +1,9 @@
 const path = require("path");
 
 module.exports = {
-    entry: "./frontend/src/index.js",
+    entry: "./src/index.js",
     output: {
-        path: path.resolve(__dirname, "./frontend/public"),
+        path: path.resolve(__dirname, "./public"),
         filename: "bundle.js",
         publicPath: "/"
     },
@@ -29,7 +29,7 @@ module.exports = {
     },
     devServer: {
         static: {
-            directory: path.join(__dirname, './frontend/public'),
+            directory: path.join(__dirname, './public'),
         },
         port: 3001,
         open: true,
@@ -39,8 +39,8 @@ module.exports = {
             index: '/index.html'
         },
         watchFiles: [
-            'frontend/src/**/*',
-            'frontend/public/**/*'
+            'src/**/*',
+            'public/**/*'
         ],
         compress: true,
         client: {

@@ -9,12 +9,13 @@ RUN npm install
 COPY . .
 
 # Build frontend
-RUN npm run build:frontend
+RUN npm run build
 
 # Stage 2: Serve with nginx
 FROM nginx:stable-alpine
 
-COPY --from=build /app/frontend/dist /usr/share/nginx/html
+# Copy build output to nginx html folder
+COPY --from=build /app/public /usr/share/nginx/html
 
 # Copy custom nginx.conf
 COPY nginx.conf /etc/nginx/nginx.conf
