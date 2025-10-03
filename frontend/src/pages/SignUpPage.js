@@ -1,12 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import AuthHeader from '../components/AuthHeader';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext'; 
 
 function SignUpPage() {
-  const { signup } = useContext(AuthContext);
-  const navigate = useNavigate();
-
   // State for form inputs
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -18,6 +14,8 @@ function SignUpPage() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  const navigate = useNavigate();
 
   const handleValidation = () => {
     let isValid = true;
@@ -53,18 +51,34 @@ function SignUpPage() {
     return isValid;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (!handleValidation()) return;
 
     try {
-      await signup({ username, email, password });
-      navigate("/home");
+      const response = await fetch('http://localhost:3000/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store user info in localStorage
+        localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('email', data.user.email);
+
+        navigate('/home');
+      } else {
+        setErrorMsg(data.message || 'Sign up failed.');
+      }
     } catch (err) {
-      alert(err.message);
+      setErrorMsg('Server error. Please try again.');
     }
   };
-
 
   return (
     <div className="auth-page">

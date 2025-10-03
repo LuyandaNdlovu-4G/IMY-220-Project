@@ -1,15 +1,20 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function ProjectCard({ project }) {
+  const navigate = useNavigate();
+
+  const handleView = (e) => {
+    e.stopPropagation();
+    navigate(`/projects/${project._id}`);
+  };
+
   return (
-    <Link to={`/projects/${project.id}`} className="project-card-link">
-      <div className="project-card">
-        <h3>{project.name}</h3>
-        <p>{project.owner}: {project.name}</p>
-        <span className="btn view-btn">view</span>
-      </div>
-    </Link>
+    <div className="project-card">
+      <h3>{project.projectName}</h3>
+      <p>{project.owner?.username}: {project.description}</p>
+      <span className="btn view-btn" onClick={handleView}>view</span>
+    </div>
   );
 }
 

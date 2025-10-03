@@ -1,57 +1,37 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import LeftPanel from '../components/LeftPanel';
 import ActivityFeed from '../components/ActivityFeed';
-import api from '../api';
-import { AuthContext } from '../context/AuthContext';
 
 function HomePage() {
-
   const [projects, setProjects] = useState([]);
   const [activities, setActivities] = useState([]);
-  const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (user) {
-      api.get("/projects")
-        .then(res => {
-          console.log("Projects API:", res.data);
-          setProjects(res.data);
-        })
-        .catch(err => console.error(err));
 
-      api.get("/activity/local")
-        .then(res => {
-          console.log("Activities API:", res.data);
-          setActivities(res.data);
-        })
-        .catch(err => console.error(err));
-    }
-  }, [user]);
+     useEffect(() => {
+      fetch('http://localhost:3000/api/projects/mine', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => setProjects(data));
 
-  const handleNewProject = async (projectName) => {
-    try {
-    const res = await api.post("/projects", {
-        projectName,
-        description: "No description yet", // placeholder if not provided
-        hashtags: [],
-        type: "other",
-        version: "v1.0.0"
-      });
+      fetch('http://localhost:3000/api/activity', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => setActivities(data));
+    }, []);
 
-      if (res.status === 201) {
-        const newProject = {
-          name: res.data.project.projectName,
-          id: res.data.project.id,
-          owner: res.data.project.owner
-        };
-        setProjects([...projects, newProject]);
-      } else {
-        alert(res.data.message || "Failed to create project");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create project.");
+
+
+
+  // Handler for creating a new project
+  const handleNewProject = async (projectData) => {
+    const response = await fetch('http://localhost:3000/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(projectData)
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setProjects(prev => [...prev, data.project]);
     }
   };
 

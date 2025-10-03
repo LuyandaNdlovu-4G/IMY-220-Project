@@ -1,5 +1,4 @@
-terminal commands:
--npm run build:frontend
--npm start
+terminal commands
 
-https://github.com/LuyandaNdlovu-4G/IMY-220-Project
+npm run build:frontend
+npm start

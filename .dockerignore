@@ -5,9 +5,7 @@ npm-debug.log
 
 .git
 .gitignore
-
 .dockerignore
-
 .vscode/
 
 .env

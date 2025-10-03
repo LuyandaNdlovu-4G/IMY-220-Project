@@ -1,54 +1,94 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
-import FriendCard from '../components/FriendCard';
-import ActivityFeed from '../components/ActivityFeed';
 
-function FriendPage() {
-    const friendsData = [
-        { id: 'sarah-pg', name: 'Sarah_PG', image: '/assets/images/User Icon.png' },
-        { id: 'john-smith', name: 'John_Smith', image: '/assets/images/User Icon.png' },
-        { id: 'jane-doe', name: 'Jane_Doe', image: '/assets/images/User Icon.png' },
-    ];
+function FriendsPage() {
+  const [friends, setFriends] = useState([]);
+  const [activities, setActivities] = useState({});
+  const [emailToAdd, setEmailToAdd] = useState('');
 
-    const friendsActivity = [
-        {
-        user: 'Sarah_PG',
-        action: 'started a new project',
-        project: 'Data Analytics',
-        project_id: 'data-analytics',
-        time: '2025-08-01 10:15:00',
-        tags: ['Python', 'Pandas']
-        },
-        {
-        user: 'John_Smith',
-        action: 'checked in changes',
-        project: 'Personal Website',
-        project_id: 'personal-website',
-        time: '2025-08-05 13:22:00',
-        tags: ['HTML', 'CSS', 'JavaScript']
-        },
-    ];
+  // Fetch friends on mount
+  useEffect(() => {
+    fetch('http://localhost:3000/api/friends', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setFriends(data || []));
+  }, []);
 
-    return (
-        <div className="friends-page">
-        <Header />
-        <div className="main-content">
-            <div className="left-panel">
-                <div className="friends-list-header">
-                    <h1>All Friends</h1>
-                </div>
-                <div className="friends-list">
-                    {friendsData.map((friend) => (
-                    <FriendCard key={friend.id} friend={friend} />
-                    ))}
-                </div>
-            </div>
-            <div className="right-panel">
-            <ActivityFeed activities={friendsActivity} />
-            </div>
+  
+  useEffect(() => {
+    fetch('http://localhost:3000/api/activity/local', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        // Group activities by user
+        const grouped = {};
+        data.forEach(act => {
+          if (!grouped[act.user._id]) grouped[act.user._id] = [];
+          grouped[act.user._id].push(act);
+        });
+        setActivities(grouped);
+      });
+  }, [friends]);
+
+  const handleAddFriend = async () => {
+    if (!emailToAdd.trim()) return;
+    await fetch('http://localhost:3000/api/friends', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailToAdd })
+    });
+    setEmailToAdd('');
+    // Refresh friends list
+    fetch('http://localhost:3000/api/friends', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setFriends(data || []));
+  };
+
+
+  const handleRemoveFriend = async (friendId) => {
+    await fetch(`http://localhost:3000/api/friends/${friendId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    setFriends(prev => prev.filter(f => f._id !== friendId));
+  };
+
+  return (
+    <div className="friends-page">
+      <Header />
+      <div className="main-content">
+        <h1>Your Friends</h1>
+        <div className="add-friend-form">
+          <input
+            type="text"
+            value={emailToAdd}
+            onChange={e => setEmailToAdd(e.target.value)}
+            placeholder="Enter friend's email to add"
+          />
+          <button className="btn add-btn" onClick={handleAddFriend}>Add Friend</button>
         </div>
+        <div className="friends-list">
+          {friends.map(friend => (
+            <div key={friend._id} className="friend-card">
+              <div>
+                <strong>{friend.username}</strong> ({friend.email})
+                <button className="btn remove-btn" onClick={() => handleRemoveFriend(friend._id)}>Remove</button>
+              </div>
+              <div className="friend-activities">
+                <h4>Recent Activity:</h4>
+                <ul>
+                  {(activities[friend._id] || []).map(act => (
+                    <li key={act._id || act.createdAt}>
+                      {act.message || act.type} ({new Date(act.createdAt).toLocaleString()})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
-export default FriendPage;
+export default FriendsPage;

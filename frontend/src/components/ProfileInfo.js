@@ -1,25 +1,16 @@
-import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import React from 'react';
 
 function ProfileInfo({ profile }) {
-
-  const { logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  }
+  const defaultImg = '/assets/images/User Icon.png'; // relative to public folder
+  const avatarSrc = profile.details?.avatar
+    ? `/${profile.details.avatar.replace(/\\/g, '/')}`
+    : defaultImg;
 
   return (
     <div className="profile-info">
-      <img src={profile.image} alt="User Profile" className="profile-img" />
+      <img src={avatarSrc} alt="User Profile" className="profile-img" />
       <h1 className="profile-username">{profile.username}</h1>
-      <p className="profile-bio">{profile.bio}</p>
-      <button className="btn logout-btn" onClick={handleLogout}>
-        Log Out
-      </button>
+      <p className="profile-location">{profile.details?.location}</p>
     </div>
   );
 }

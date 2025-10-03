@@ -1,18 +1,34 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+
 
 
 function Header() {
-  const { user, logout } = useContext(AuthContext);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    const storedUsername = localStorage.getItem('username');
+    setIsLoggedIn(!!userId);
+    setUsername(storedUsername || '');
+  }, []);
+
+  const handleLogout = async () => {
+    //Call backend to destroy session
+    await fetch('http://localhost:3000/api/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    // Clear localStorage and update state
+    localStorage.clear();
+    setIsLoggedIn(false);
+    setUsername('');
     navigate('/login');
   };
 
-  return (
+return (
     <header className="header">
       <div className="left-group">
         <div className="logo">
@@ -26,19 +42,19 @@ function Header() {
           </ul>
         </nav>
       </div>
-      {user ? (
+      {isLoggedIn ? (
         <div className="user-actions-logged-in">
           <input type="text" placeholder="Search..." className="search-input" />
-          <Link to="/profile" className="profile-link">{user.username}</Link>
+          <Link to="/profile" className="profile-link">{username}</Link>
           <Link to="/profile">
             <img src="/assets/images/User Icon.png" alt="User Icon" className="user-icon" />
           </Link>
-          <button className="btn logout-btn" onClick={handleLogout}>Log Out</button>
+          <button className="btn logout-btn" onClick={handleLogout}>Log out</button>
         </div>
       ) : (
         <div className="user-actions-logged-out">
-          <Link to="/login" className="btn login-btn">login</Link>
-          <Link to="/signup" className="btn signup-btn">sign up</Link>
+          <Link to="/login" className="btn login-btn">Log in</Link>
+          <Link to="/signup" className="btn signup-btn">Sign up</Link>
         </div>
       )}
     </header>

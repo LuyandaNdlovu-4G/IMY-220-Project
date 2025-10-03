@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 function CreateProjectPopup({ onClose, onCreate }) {
   const [projectName, setProjectName] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (event) => {
@@ -10,9 +11,11 @@ function CreateProjectPopup({ onClose, onCreate }) {
       setError('Project name is required.');
       return;
     }
-    onCreate(projectName);
+    onCreate({ projectName, description });
     setProjectName('');
+    setDescription('');
     setError('');
+    onClose();
   };
 
   return (
@@ -28,10 +31,19 @@ function CreateProjectPopup({ onClose, onCreate }) {
             <input
               type="text"
               id="projectName"
-              placeholder="e.g., My First App"
+              placeholder="My First App"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              placeholder="Describe your project"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           {error && <p className="error-message">{error}</p>}

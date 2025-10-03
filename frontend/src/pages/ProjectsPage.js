@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import ProjectCard from '../components/ProjectCard';
 import CreateProjectPopup from '../components/CreateProjectPopup';
@@ -6,24 +6,39 @@ import usePopup from '../hooks/usePopup';
 
 function ProjectsPage() {
   const { isPopupVisible, showPopup, hidePopup } = usePopup();
+  const [projectsData, setProjectsData] = useState([]);
 
-  // Dummy data for all user projects
-  const [projectsData, setProjectsData] = useState([
-    { name: 'Project 1', id: 'luyanda-project-1', owner: 'LuyandaNdlovu-4G' },
-    { name: 'Project 2', id: 'luyanda-project-2', owner: 'LuyandaNdlovu-4G' },
-    { name: 'DevOps Project', id: 'devops-project', owner: 'LuyandaNdlovu-4G' },
-    { name: 'IMY 220 Website', id: 'imy-website', owner: 'LuyandaNdlovu-4G' },
-  ]);
+  // Fetch projects from backend on mount
+  useEffect(() => {
+    fetch('http://localhost:3000/api/projects/mine', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setProjectsData(data));
+  }, []);
 
-  const handleCreateProject = (projectName) => {
-    // In a real application, you'd send this data to a backend API
-    const newProject = {
-      name: projectName,
-      id: projectName.toLowerCase().replace(/\s/g, '-'),
-      owner: 'LuyandaNdlovu-4G'
-    };
-    setProjectsData([...projectsData, newProject]);
+  // Create new project via backend
+  const handleCreateProject = async (projectData) => {
+    const response = await fetch('http://localhost:3000/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(projectData)
+    });
+    const data = await response.json();
+    if (response.ok && data.project) {
+      setProjectsData(prev => [...prev, { ...data.project, owner: { username: data.project.owner } }]);
+    }
     hidePopup();
+  };
+
+  // Remove project handler
+  const handleRemoveProject = async (projectId) => {
+    const response = await fetch(`http://localhost:3000/api/projects/${projectId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (response.ok) {
+      setProjectsData(prev => prev.filter(p => p._id !== projectId && p.id !== projectId));
+    }
   };
 
   return (
@@ -37,7 +52,15 @@ function ProjectsPage() {
           </div>
           <div className="projects-list">
             {projectsData.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <div key={project._id || project.id} className="project-list-item">
+                <ProjectCard project={project} />
+                <button
+                  className="btn remove-btn"
+                  onClick={() => handleRemoveProject(project._id || project.id)}
+                >
+                  Remove
+                </button>
+              </div>
             ))}
           </div>
         </div>

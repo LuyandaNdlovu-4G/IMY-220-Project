@@ -1,30 +1,21 @@
 const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-    entry: path.resolve(__dirname, "./frontend/src/index.js"),
-
+    entry: "./frontend/src/index.js",
     output: {
-        path: path.resolve(__dirname, "./frontend/dist"),
+        path: path.resolve(__dirname, "./frontend/public"),
         filename: "bundle.js",
         publicPath: "/"
     },
-
-    mode: "production", // change to "production" for production builds
-
+    mode: "development",
+    devtool: "inline-source-map",
     module: {
         rules: [
             {
-                test: /\.(js|jsx)$/, // handle both .js and .jsx files
+                test: /\.js$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: [
-                            "@babel/preset-env",
-                            "@babel/preset-react"
-                        ]
-                    }
+                    loader: "babel-loader"
                 }
             },
             {
@@ -33,25 +24,30 @@ module.exports = {
             }
         ]
     },
-
     resolve: {
-        extensions: [".js", ".jsx"]
+        extensions: ['.js', '.jsx']
     },
-
-    plugins: [
-        new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, "./frontend/public/index.html"),
-            filename: "index.html"
-        })
-    ],
-
     devServer: {
-        proxy: {
-            "/api" : {
-                target: "http://localhost:3000",
-                changeOrigin: true,
-                credentials: "include"
-            }
+        static: {
+            directory: path.join(__dirname, './frontend/public'),
+        },
+        port: 3001,
+        open: true,
+        hot: true,
+        liveReload: true,
+        historyApiFallback: {
+            index: '/index.html'
+        },
+        watchFiles: [
+            'frontend/src/**/*',
+            'frontend/public/**/*'
+        ],
+        compress: true,
+        client: {
+            overlay: {
+                errors: true,
+                warnings: false,
+            },
         }
     }
-};
+}
