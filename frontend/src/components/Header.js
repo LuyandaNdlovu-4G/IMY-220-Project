@@ -17,7 +17,7 @@ function Header() {
 
   const handleLogout = async () => {
     //Call backend to destroy session
-    await fetch('http://localhost:3000/api/logout', {
+    await fetch('http://localhost:3001/api/logout', {
       method: 'POST',
       credentials: 'include'
     });

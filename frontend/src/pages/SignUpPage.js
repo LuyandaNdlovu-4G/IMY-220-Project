@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthHeader from '../components/AuthHeader';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function SignUpPage() {
   // State for form inputs
@@ -56,7 +56,7 @@ function SignUpPage() {
     if (!handleValidation()) return;
 
     try {
-      const response = await fetch('http://localhost:3000/api/signup', {
+      const response = await fetch('http://localhost:3001/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -137,7 +137,7 @@ function SignUpPage() {
             </div>
             <button type="submit" className="btn auth-btn">Sign up</button>
           </form>
-          <p className="form-link">Already have an account? <a href="/login">Log in</a></p>
+          <p className="form-link">Already have an account? <Link to="/login">Log in</Link></p>
         </div>
       </div>
     </div>

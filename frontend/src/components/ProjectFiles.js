@@ -9,7 +9,7 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles }) {
 
   // Combined check out and download
   const handleCheckOutAndDownload = async (fileId) => {
-    await fetch(`http://localhost:3000/api/files/${fileId}/checkout`, {
+    await fetch(`http://localhost:3001/api/files/${fileId}/checkout`, {
       method: 'POST',
       credentials: 'include'
     });
@@ -28,7 +28,7 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles }) {
 
   // Handle actual check-in (upload)
   const handleCheckInUpload = async (formData) => {
-    await fetch(`http://localhost:3000/api/files/${checkInFileId}/checkin`, {
+    await fetch(`http://localhost:3001/api/files/${checkInFileId}/checkin`, {
       method: 'POST',
       credentials: 'include',
       body: formData
@@ -52,7 +52,7 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles }) {
             {file.status && <span>Status: {file.status}</span>}
             {/* Hidden download link for programmatic click */}
             <a
-              href={`http://localhost:3000/api/files/${file._id}`}
+              href={`http://localhost:3001/api/files/${file._id}`}
               download={file.fileName}
               ref={el => downloadRefs.current[file._id] = el}
               style={{ display: "none" }}

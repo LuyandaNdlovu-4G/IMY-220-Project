@@ -14,8 +14,14 @@ function ProjectView() {
   const [activities, setActivities] = useState([]);
 
   useEffect(() => {
+    const userId = localStorage.getItem('userId');
     // Fetch project details
-    fetch(`http://localhost:3000/api/projects/${id}`, { credentials: 'include' })
+    fetch(`http://localhost:3001/api/projects/${id}`, { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => {
         setProject(data);
@@ -24,16 +30,20 @@ function ProjectView() {
       });
 
     // Fetch project activity
-    fetch(`http://localhost:3000/api/projects/${id}/activity`, { credentials: 'include' })
+    fetch(`http://localhost:3001/api/projects/${id}/activity`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => setActivities(data.activities || []));
   }, [id]);
 
 
   const handleEditProject = async (formData) => {
-    const response = await fetch(`http://localhost:3000/api/projects/${id}`, {
+    const userId = localStorage.getItem('userId');
+    const response = await fetch(`http://localhost:3001/api/projects/${id}`, {
       method: 'PUT',
       credentials: 'include',
+      headers: {
+        'user-id': userId
+      },
       body: formData
     });
     const data = await response.json();
@@ -45,7 +55,13 @@ function ProjectView() {
   };
 
   const refreshFiles = () => {
-  fetch(`http://localhost:3000/api/projects/${id}`, { credentials: 'include' })
+    const userId = localStorage.getItem('userId');
+    fetch(`http://localhost:3001/api/projects/${id}`, { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
     .then(res => res.json())
     .then(data => {
       setProject(data);

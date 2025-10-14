@@ -1,45 +1,22 @@
 const express = require("express");
-const session = require("express-session");
 const path = require("path");
-const { connectDB, getCollection, ObjectId } = require("./db");
-const MongoDBStore = require("connect-mongodb-session")(session);
-const  auth = require("./middleware/auth");
+const cors = require("cors");
+const { ObjectId } = require("mongodb");
+const { connectDB, getCollection} = require("./db/conn");
 const multer = require("multer");
 
-
-
 const app = express();
-const port = 3000;
 
-app.use(express.json());
-
-// Session store
-const store = new MongoDBStore({
-    uri: process.env.MONGO_URI,
-    collection: "sessions"
-});
-
-store.on("error", error => {
-    console.error("Session store error:", error);
-});
-
-app.use(session({
-    secret: process.env.SESSION_SECRET || "mysecretkey",
-    resave: false,
-    saveUninitialized: false,
-    store,
-    cookie: {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 // 1 day
-    }
-}));
-
-
-const cors = require("cors");
 app.use(cors({
-  origin: "http://localhost:8080", // Explicitly allow frontend URL
+  origin: 'http://localhost:3000',
   credentials: true
 }));
+
+app.use(express.json());
+// Serve static files from frontend/public
+app.use(express.static(path.join(__dirname, "../frontend/public")));
+const port = 3001;
+
 
 //handle image uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -92,8 +69,6 @@ app.post("/api/signup", async (req, res) => {
             }
         });
 
-        req.session.userId = result.insertedId.toString(); 
-
         res.status(201).json({
             message: "User created successfully!",
             user: {
@@ -133,7 +108,7 @@ app.post("/api/login", async (req, res) => {
             return res.status(401).json({ message: "Invalid password." });
         }
 
-        req.session.userId = existingUser._id.toString();
+
 
         res.json({
             message: "Login successful!",
@@ -151,7 +126,7 @@ app.post("/api/login", async (req, res) => {
 
 
 // GET logged-in user
-app.get("/api/users/me", auth, (req, res) => {
+app.get("/api/users/me", (req, res) => {
 
     res.json({
         id: req.user._id.toString(),
@@ -163,86 +138,82 @@ app.get("/api/users/me", auth, (req, res) => {
 
 // POST - LOGOUT
 app.post("/api/logout", (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            return res.status(500).json({ message: "Logout failed." });
-        }
-        res.clearCookie("connect.sid");
-        res.json({ message: "Logged out successfully." });
-    });
+  // No session logic, just respond with success
+  res.json({ message: "Logged out successfully." });
 });
 
 
 // POST - CREATE PROJECT
-app.post("/api/projects", auth, async (req, res) => {
-    const { projectName, description, hashtags, type, version } = req.body;
+app.post("/api/projects", async (req, res) => {
+  const { projectName, description, hashtags, type, version, userId, username } = req.body;
 
-    if (!projectName || !description) {
-        return res.status(400).json({ message: "Project name and description are required." });
+  if (!projectName || !description || !userId || !username) {
+    return res.status(400).json({ message: "Project name, description, userId, and username are required." });
+  }
+
+  try {
+    const projects = req.app.locals.projects;
+    const users = req.app.locals.users;
+    const activities = req.app.locals.activities;
+
+    if (!projects || !users) {
+      return res.status(500).json({ message: "Database not initialized." });
     }
 
-    try {
-
-        const projects = req.app.locals.projects;
-        const users = req.app.locals.users;
-        const activities = req.app.locals.activities;
-
-        if (!projects || !users) {
-            return res.status(500).json({ message: "Database not initialized." });
-        }
-
-        const allowedTypes = ["web application", "game", "mobile app", "desktop app", "library", "other"];
-        if (type && !allowedTypes.includes(type)) {
-            return res.status(400).json({ message: "Invalid project type." });
-        }
-
-        const newProject = {
-            projectName: projectName.trim(),
-            description: description.trim(),
-            hashtags: Array.isArray(hashtags) ? hashtags.map(tag => tag.toLowerCase().trim()) : [],
-            type: type || "other",
-            version: version || "v1.0.0",
-            owner: new ObjectId(req.user._id),
-            members: [{
-                user: new ObjectId(req.user._id),
-                role: "owner",
-                joinedAt: new Date()
-            }],
-            files: [],
-            status: "checkedIn",
-            checkedOutBy: null,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-
-        const result = await projects.insertOne(newProject);
-
-        await users.updateOne(
-            { _id: new ObjectId(req.user._id) },
-            { $push: { createdProjects: result.insertedId } }
-        );
-
-        await activities.insertOne({
-          user: new ObjectId(req.user._id),
-          project: result.insertedId,
-          type: "project_created",
-          message: `${req.user.username} created project "${projectName}"`,
-          version: version || "v1.0.0",
-          createdAt: new Date()
-        });
-
-        res.status(201).json({
-            message: "Project created successfully!",
-            project: {
-                id: result.insertedId.toString(),
-                projectName: newProject.projectName,
-                owner: req.user.username
-            }
-        });
-    } catch (err) {
-        console.error("Create project error:", err.stack);
-        res.status(500).json({ message: "Failed to create project." });
+    const allowedTypes = ["web application", "game", "mobile app", "desktop app", "library", "other"];
+    if (type && !allowedTypes.includes(type)) {
+      return res.status(400).json({ message: "Invalid project type." });
     }
+
+    const ownerObjectId = new ObjectId(userId);
+    const newProject = {
+      projectName: projectName.trim(),
+      description: description.trim(),
+      hashtags: Array.isArray(hashtags) ? hashtags.map(tag => tag.toLowerCase().trim()) : [],
+      type: type || "other",
+      version: version || "v1.0.0",
+      owner: ownerObjectId,
+      members: [{
+        user: ownerObjectId,
+        role: "owner",
+        joinedAt: new Date()
+      }],
+      files: [],
+      status: "checkedIn",
+      checkedOutBy: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await projects.insertOne(newProject);
+
+    await users.updateOne(
+      { _id: ownerObjectId },
+      { $push: { createdProjects: result.insertedId } }
+    );
+
+    await activities.insertOne({
+      user: ownerObjectId,
+      project: result.insertedId,
+      type: "project_created",
+      message: `${username} created project "${projectName}"`,
+      version: version || "v1.0.0",
+      createdAt: new Date()
+    });
+
+    res.status(201).json({
+      message: "Project created successfully!",
+      project: {
+        id: result.insertedId.toString(),
+        projectName: newProject.projectName,
+        owner: username
+      }
+    });
+  } catch (err) {
+    console.error("Create project error:", err.stack);
+    console.lof(userId, username);
+    res.status(500).json({ message: "Failed to create project." });
+  }
 });
 
 
@@ -295,14 +266,27 @@ app.get("/api/projects/:id/public", async (req, res) => {
 });
 
 
-//GET - PROJECTS
-app.get("/api/projects/mine", auth, async (req, res) => {
+//GET - PROJECTS (Current user only)
+app.get("/api/projects/mine", async (req, res) => {
   try {
+    const userId = req.query.userId;
+    console.log('Fetching projects for userId:', userId);
+    if (!userId) {
+      console.log('No userId provided');
+      return res.status(400).json({ message: "User ID is required." });
+    }
+    // Validate ObjectId
+    const isValid = ObjectId.isValid(userId);
+    console.log('Is userId valid ObjectId?', isValid);
+    if (!isValid) {
+      return res.status(400).json({ message: "Invalid userId format." });
+    }
+
     const projects = req.app.locals.projects;
     const users = req.app.locals.users;
 
     const results = await projects
-      .find({ "members.user": new ObjectId(req.user._id) })
+      .find({ "members.user": new ObjectId(userId) })
       .toArray();
 
     const populatedProjects = await Promise.all(
@@ -342,7 +326,7 @@ app.get("/api/projects/mine", auth, async (req, res) => {
 
 
 //GET - FRIENDS WITH PROJECTS
-app.get("/api/projects/friends", auth, async (req, res) => {
+app.get("/api/projects/friends", async (req, res) => {
   try {
     const projects = req.app.locals.projects;
     const users = req.app.locals.users;
@@ -400,11 +384,12 @@ app.get("/api/projects/friends", auth, async (req, res) => {
 });
 
 
-//GET - PROJECT DETAILS
-app.get("/api/projects/:id", auth, async (req, res) => {
+//GET - Specific PROJECT DETAILS (must be a member)
+app.get("/api/projects/:id", async (req, res) => {
   try {
     const projects = req.app.locals.projects;
     const users = req.app.locals.users;
+    const userId = req.headers['user-id']; 
 
     if (!projects || !users) {
       return res.status(500).json({ message: "Database not initialized." });
@@ -422,9 +407,13 @@ app.get("/api/projects/:id", auth, async (req, res) => {
       return res.status(404).json({ message: "Project not found." });
     }
 
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
+
     // Check if user is a member
     const isMember = project.members.some(
-      (m) => m.user.toString() === req.user._id.toString()
+      (m) => m.user.toString() === userId
     );
 
     if (!isMember) {
@@ -479,32 +468,41 @@ app.get("/api/projects/:id", auth, async (req, res) => {
 
 
 // //ADD FRIEND
-app.post("/api/friends", auth, async (req, res) => {
+app.post("/api/friends", async (req, res) => {
   const { email } = req.body;
+  const userId = req.headers['user-id'];
 
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
 
+  if (!userId || !ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Valid user ID is required in headers." });
+  }
+
   try {
     const users = req.app.locals.users;
+    const currentUser = await users.findOne({ _id: new ObjectId(userId) });
+    if (!currentUser) {
+      return res.status(404).json({ message: "Current user not found." });
+    }
 
     const friend = await users.findOne({ email });
     if (!friend) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ message: "User with that email not found." });
     }
 
-    if (friend._id.toString() === req.user._id.toString()) {
+    if (friend._id.toString() === userId) {
       return res.status(400).json({ message: "You cannot add yourself as a friend." });
     }
 
-    const isAlreadyFriend = req.user.friends.some(f => f.toString() === friend._id.toString());
+    const isAlreadyFriend = currentUser.friends.some(f => f.toString() === friend._id.toString());
     if (isAlreadyFriend) {
       return res.status(409).json({ message: "Already friends." });
     }
 
     await users.updateOne(
-      { _id: new ObjectId(req.user._id) },
+      { _id: new ObjectId(userId) },
       { $push: { friends: friend._id } }
     );
 
@@ -517,21 +515,31 @@ app.post("/api/friends", auth, async (req, res) => {
 
 
 // //GET FRIENDS LIST
-app.get("/api/friends", auth, async (req, res) => {
+app.get("/api/friends", async (req, res) => {
   try {
     const users = req.app.locals.users;
+    const userId = req.headers['user-id'];
+
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
 
     const user = await users.findOne(
-      { _id: new ObjectId(req.user._id) },
+      { _id: new ObjectId(userId) },
       { projection: { friends: 1 } }
     );
 
-    if (!user || !user.friends) {
+    if (!user) {
+      return res.json([]);
+    }
+
+    const friendIds = user.friends ? user.friends.map(id => new ObjectId(id)) : [];
+    if (friendIds.length === 0) {
       return res.json([]);
     }
 
     const friends = await users
-      .find({ _id: { $in: user.friends.map(id => new ObjectId(id)) } })
+      .find({ _id: { $in: friendIds } })
       .project({ username: 1, email: 1, createdAt: 1 })
       .toArray();
 
@@ -544,17 +552,22 @@ app.get("/api/friends", auth, async (req, res) => {
 
 
 // //GET FRIEND'S PROJECTS
-app.get("/api/friends/:id/projects", auth, async (req, res) => {
+app.get("/api/friends/:id/projects", async (req, res) => {
   try {
     const users = req.app.locals.users;
     const projects = req.app.locals.projects;
+    const userId = req.headers['user-id'];
+
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
 
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: "Invalid friend ID." });
     }
 
-    const user = await users.findOne({ _id: new ObjectId(req.user._id) });
-    if (!user || !user.friends.includes(req.params.id)) {
+    const user = await users.findOne({ _id: new ObjectId(userId) });
+    if (!user || !user.friends.some(friendId => friendId.toString() === req.params.id)) {
       return res.status(403).json({ message: "Not your friend." });
     }
 
@@ -599,15 +612,20 @@ app.get("/api/friends/:id/projects", auth, async (req, res) => {
 
 
 // DELETE PROJECT (owner only)
-app.delete("/api/projects/:id", auth, async (req, res) => {
+app.delete("/api/projects/:id", async (req, res) => {
   try {
     const projects = req.app.locals.projects;
     const users = req.app.locals.users;
+    const userId = req.headers['user-id'];
+
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
 
     const project = await projects.findOne({ _id: new ObjectId(req.params.id) });
     if (!project) return res.status(404).json({ message: "Project not found." });
 
-    if (project.owner.toString() !== req.user._id.toString()) {
+    if (project.owner.toString() !== userId) {
       return res.status(403).json({ message: "Only owner can delete." });
     }
 
@@ -626,13 +644,18 @@ app.delete("/api/projects/:id", auth, async (req, res) => {
 
 
 // DELETE (UN-FRIEND)
-app.delete("/api/friends/:friendId", auth, async (req, res) => {
+app.delete("/api/friends/:friendId", async (req, res) => {
   try {
     const users = req.app.locals.users;
+    const userId = req.headers['user-id'];
+
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
 
     await users.updateOne(
-      { _id: ObjectId(req.user._id) },
-      { $pull: { friends: ObjectId(req.params.friendId) } }
+      { _id: new ObjectId(userId) },
+      { $pull: { friends: new ObjectId(req.params.friendId) } }
     );
 
     res.json({ message: "Unfriended successfully." });
@@ -682,17 +705,23 @@ app.get("/api/search", async (req, res) => {
 
 
 //POST - CHECK OUT PROJECT
-app.post("/api/projects/:id/checkout", auth, async (req, res) => {
+app.post("/api/projects/:id/checkout", async (req, res) => {
   try {
     const projects = req.app.locals.projects;
     const activities = req.app.locals.activities;
+    const userId = req.headers['user-id'];
+    const username = req.headers['username'];
 
-    const project = await projects.findOne({ _id: ObjectId(req.params.id) });
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
+
+    const project = await projects.findOne({ _id: new ObjectId(req.params.id) });
     if (!project) return res.status(404).json({ message: "Project not found." });
 
     // Check if user is a member
     const isMember = project.members?.some(m =>
-      m.user.toString() === req.user._id.toString()
+      m.user.toString() === userId
     );
     if (!isMember) {
       return res.status(403).json({ message: "You must be a project member to check out." });
@@ -708,15 +737,15 @@ app.post("/api/projects/:id/checkout", auth, async (req, res) => {
 
     // Lock the project
     await projects.updateOne(
-      { _id: ObjectId(req.params.id) },
-      { $set: { status: "checkedOut", checkedOutBy: ObjectId(req.user._id) } }
+      { _id: new ObjectId(req.params.id) },
+      { $set: { status: "checkedOut", checkedOutBy: new ObjectId(userId) } }
     );
 
     // Log activity
     await activities.insertOne({
       type: "checkout",
       project: project._id,
-      user: ObjectId(req.user._id),
+      user: new ObjectId(userId),
       createdAt: new Date()
     });
 
@@ -725,7 +754,7 @@ app.post("/api/projects/:id/checkout", auth, async (req, res) => {
       project: {
         id: project._id,
         status: "checkedOut",
-        checkedOutBy: req.user.username
+        checkedOutBy: username
       }
     });
   } catch (err) {
@@ -736,18 +765,23 @@ app.post("/api/projects/:id/checkout", auth, async (req, res) => {
 
 
 // POST - CHECK IN PROJECT
-app.post("/api/projects/:id/checkin", auth, async (req, res) => {
+app.post("/api/projects/:id/checkin", async (req, res) => {
   const { message, version, newFiles = [] } = req.body;
+  const userId = req.headers['user-id'];
+
+  if (!userId || !ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Valid user ID is required in headers." });
+  }
 
   try {
     const projects = req.app.locals.projects;
     const activities = req.app.locals.activities;
 
-    const project = await projects.findOne({ _id: ObjectId(req.params.id) });
+    const project = await projects.findOne({ _id: new ObjectId(req.params.id) });
     if (!project) return res.status(404).json({ message: "Project not found." });
 
     // Only the user who checked out can check in
-    if (project.checkedOutBy?.toString() !== req.user._id.toString()) {
+    if (project.checkedOutBy?.toString() !== userId) {
       return res.status(403).json({ message: "Only the user who checked out the project can check it in." });
     }
 
@@ -755,7 +789,7 @@ app.post("/api/projects/:id/checkin", auth, async (req, res) => {
     const fileMetadata = newFiles.map(f => ({
       fileName: f.fileName,
       filePath: f.filePath,
-      uploadedBy: ObjectId(req.user._id),
+      uploadedBy: new ObjectId(userId),
       uploadedAt: new Date(),
       size: f.size,
       mimeType: f.mimeType
@@ -763,7 +797,7 @@ app.post("/api/projects/:id/checkin", auth, async (req, res) => {
 
     // Update project
     await projects.updateOne(
-      { _id: ObjectId(req.params.id) },
+      { _id: new ObjectId(req.params.id) },
       {
         $push: { files: { $each: fileMetadata } },
         $set: {
@@ -778,7 +812,7 @@ app.post("/api/projects/:id/checkin", auth, async (req, res) => {
     const activityDoc = {
       type: "checkin",
       project: project._id,
-      user: ObjectId(req.user._id),
+      user: new ObjectId(userId),
       message: message || "No message provided.",
       version: version || project.version,
       files: fileMetadata.map(f => ({
@@ -853,14 +887,22 @@ app.get("/api/activity", async (req, res) => {
 
 
 // GET - LOCAL ACTIVITY FEED (FRIENDS + SELF)
-app.get("/api/activity/local", auth, async (req, res) => {
+app.get("/api/activity/local", async (req, res) => {
   try {
     const users = req.app.locals.users;
     const activities = req.app.locals.activities;
+    const userId = req.headers['user-id'];
 
-    const user = await users.findOne({ _id: new ObjectId(req.user._id) });
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
+
+    const user = await users.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
     const friendIds = user.friends ? user.friends.map(f => new ObjectId(f)) : [];
-    const userIds = [new ObjectId(req.user._id), ...friendIds];
+    const userIds = [new ObjectId(userId), ...friendIds];
 
     const results = await activities.aggregate([
       { $match: { user: { $in: userIds } } },
@@ -891,6 +933,7 @@ app.get("/api/activity/local", auth, async (req, res) => {
           version: 1,
           createdAt: 1,
           "user.username": 1,
+          "user._id": 1,
           "project.projectName": 1,
           "project.type": 1
         }
@@ -905,7 +948,7 @@ app.get("/api/activity/local", auth, async (req, res) => {
 });
 
 // GET - activites related to specific projects
-app.get("/api/projects/:id/activity", auth, async (req, res) => {
+app.get("/api/projects/:id/activity", async (req, res) => {
   try {
     const activities = req.app.locals.activities;
     const users = req.app.locals.users;
@@ -967,9 +1010,10 @@ const upload = multer({ dest: path.join(__dirname, "uploads/") });
 
 
 //PUT - update project details and upload files (owner only)
-app.put("/api/projects/:id", auth, upload.array("files"), async (req, res) => {
+app.put("/api/projects/:id", upload.array("files"), async (req, res) => {
   const { projectName, description, hashtags, type, version } = req.body;
   const projectId = req.params.id;
+  const userId = req.headers['user-id'];
 
   try {
     const projects = req.app.locals.projects;
@@ -979,7 +1023,7 @@ app.put("/api/projects/:id", auth, upload.array("files"), async (req, res) => {
       return res.status(404).json({ message: "Project not found." });
     }
 
-    if (project.owner.toString() !== req.user._id.toString()) {
+    if (project.owner.toString() !== userId) {
       return res.status(403).json({ message: "Only the owner can edit this project." });
     }
 
@@ -1001,7 +1045,7 @@ app.put("/api/projects/:id", auth, upload.array("files"), async (req, res) => {
         _id: new ObjectId(),
         fileName: file.originalname,
         filePath: file.path,
-        uploadedBy: new ObjectId(req.user._id),
+        uploadedBy: new ObjectId(userId),
         uploadedAt: new Date(),
         size: file.size,
         mimeType: file.mimetype,
@@ -1050,7 +1094,7 @@ app.put("/api/projects/:id", auth, upload.array("files"), async (req, res) => {
 
 
 //GET - download file
-app.get("/api/files/:fileId", auth, async (req, res) => {
+app.get("/api/files/:fileId", async (req, res) => {
   const projects = req.app.locals.projects;
   const fileId = req.params.fileId;
   const project = await projects.findOne({ "files._id": new ObjectId(fileId) });
@@ -1062,10 +1106,10 @@ app.get("/api/files/:fileId", auth, async (req, res) => {
 
 
 // POST - check out/in file
-app.post("/api/files/:fileId/checkout", auth, async (req, res) => {
+app.post("/api/files/:fileId/checkout", async (req, res) => {
   const projects = req.app.locals.projects;
   const fileId = req.params.fileId;
-  const userId = req.user._id;
+  const userId = req.headers['user-id'];
 
   if (!ObjectId.isValid(fileId)) return res.status(400).send("Invalid file ID");
 
@@ -1081,10 +1125,10 @@ app.post("/api/files/:fileId/checkout", auth, async (req, res) => {
 
 
 // POST - check in file
-app.post("/api/files/:fileId/checkin", auth, upload.single("file"), async (req, res) => {
+app.post("/api/files/:fileId/checkin", upload.single("file"), async (req, res) => {
   const projects = req.app.locals.projects;
   const fileId = req.params.fileId;
-  const userId = req.user._id;
+  const userId = req.headers['user-id'];
 
   if (!ObjectId.isValid(fileId)) return res.status(400).send("Invalid file ID");
 
@@ -1115,11 +1159,15 @@ app.post("/api/files/:fileId/checkin", auth, upload.single("file"), async (req, 
 });
 
 // GET - PROFILE
-app.get("/api/profile", auth, async (req, res) => {
+app.get("/api/profile", async (req, res) => {
   try {
     const users = req.app.locals.users;
+    const userId = req.headers['user-id'];
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
     const user = await users.findOne(
-      { _id: new ObjectId(req.user._id) },
+      { _id: new ObjectId(userId) },
       { projection: { username: 1, email: 1, details: 1 } }
     );
     if (!user) return res.status(404).json({ message: "User not found." });
@@ -1131,9 +1179,13 @@ app.get("/api/profile", auth, async (req, res) => {
 });
 
 
-app.put("/api/profile/details", auth, async (req, res) => {
+app.put("/api/profile/details", async (req, res) => {
   try {
     const users = req.app.locals.users;
+    const userId = req.headers['user-id'];
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
+    }
     const { bio, avatar, location, skills } = req.body;
     const updateFields = {};
     if (bio !== undefined) updateFields["details.bio"] = bio;
@@ -1141,7 +1193,7 @@ app.put("/api/profile/details", auth, async (req, res) => {
     if (location !== undefined) updateFields["details.location"] = location;
     if (skills !== undefined) updateFields["details.skills"] = skills;
     await users.updateOne(
-      { _id: new ObjectId(req.user._id) },
+      { _id: new ObjectId(userId) },
       { $set: updateFields }
     );
     res.json({ message: "Profile details updated." });
@@ -1149,11 +1201,4 @@ app.put("/api/profile/details", auth, async (req, res) => {
     console.error("Update profile details error:", err);
     res.status(500).json({ message: "Failed to update profile details." });
   }
-});
-
-// Serve static files from frontend/dist
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });

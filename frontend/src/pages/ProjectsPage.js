@@ -7,37 +7,65 @@ import usePopup from '../hooks/usePopup';
 function ProjectsPage() {
   const { isPopupVisible, showPopup, hidePopup } = usePopup();
   const [projectsData, setProjectsData] = useState([]);
+  const userId = localStorage.getItem('userId');
+  const username = localStorage.getItem('username');
+
+  const fetchProjects = () => {
+    if (!userId) return;
+    fetch(`http://localhost:3001/api/projects/mine?userId=${userId}`, { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch projects');
+        return res.json();
+      })
+      .then(data => setProjectsData(data))
+      .catch(error => console.error('Error fetching projects:', error));
+  };
 
   // Fetch projects from backend on mount
   useEffect(() => {
-    fetch('http://localhost:3000/api/projects/mine', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setProjectsData(data));
-  }, []);
+    fetchProjects();
+  }, [userId]);
 
   // Create new project via backend
   const handleCreateProject = async (projectData) => {
-    const response = await fetch('http://localhost:3000/api/projects', {
+    if (!userId || !username) {
+      alert('User not logged in');
+      return;
+    }
+    const response = await fetch('http://localhost:3001/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(projectData)
+      body: JSON.stringify({ ...projectData, userId, username })
     });
-    const data = await response.json();
-    if (response.ok && data.project) {
-      setProjectsData(prev => [...prev, { ...data.project, owner: { username: data.project.owner } }]);
+    
+    if (response.ok) {
+      fetchProjects(); // Refetch projects to get the updated list
+    } else {
+      const data = await response.json();
+      console.error("Failed to create project:", data.message);
     }
     hidePopup();
   };
 
   // Remove project handler
   const handleRemoveProject = async (projectId) => {
-    const response = await fetch(`http://localhost:3000/api/projects/${projectId}`, {
+    if (!userId) {
+      alert('User not logged in');
+      return;
+    }
+    const response = await fetch(`http://localhost:3001/api/projects/${projectId}`, {
       method: 'DELETE',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
     });
     if (response.ok) {
       setProjectsData(prev => prev.filter(p => p._id !== projectId && p.id !== projectId));
+    } else {
+      const data = await response.json();
+      console.error("Failed to delete project:", data.message);
     }
   };
 

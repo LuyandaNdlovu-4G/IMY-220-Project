@@ -12,47 +12,81 @@ function ProfilePage() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
 
+  const userId = localStorage.getItem('userId');
+
   useEffect(() => {
-    fetch('http://localhost:3000/api/profile', { credentials: 'include' })
+    if (!userId) return;
+    fetch('http://localhost:3001/api/profile', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => setProfileData(data));
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/projects/mine', { credentials: 'include' })
+    if (!userId) return;
+    fetch(`http://localhost:3001/api/projects/mine?userId=${userId}`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => setProjectsData(data));
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/friends', { credentials: 'include' })
+    if (!userId) return;
+    fetch('http://localhost:3001/api/friends', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => setFriendsData(data));
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/activity', { credentials: 'include' })
+    if (!userId) return;
+    fetch('http://localhost:3001/api/activity', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => setActivityFeedData(data));
-  }, []);
+  }, [userId]);
 
   const handleEditProfile = async (formData) => {
-    await fetch('http://localhost:3000/api/profile/details', {
+    if (!userId) return;
+    await fetch('http://localhost:3001/api/profile/details', {
       method: 'PUT',
       credentials: 'include',
+      headers: {
+        'user-id': userId
+      },
       body: formData
     });
     setShowEdit(false);
     // Refresh profile data
-    fetch('http://localhost:3000/api/profile', { credentials: 'include' })
+    fetch('http://localhost:3001/api/profile', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => setProfileData(data));
   };
 
   const handleDeleteAccount = async () => {
-    await fetch('http://localhost:3000/api/profile', {
+    if (!userId) return;
+    await fetch('http://localhost:3001/api/profile', {
       method: 'DELETE',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
     });
     // Redirect to login or home page after deletion
     window.location.href = '/login';

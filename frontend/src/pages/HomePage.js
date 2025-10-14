@@ -6,32 +6,54 @@ import ActivityFeed from '../components/ActivityFeed';
 function HomePage() {
   const [projects, setProjects] = useState([]);
   const [activities, setActivities] = useState([]);
+  const userId = localStorage.getItem('userId');
+  const username = localStorage.getItem('username');
 
+  const fetchProjects = () => {
+    if (!userId) return;
+    fetch(`http://localhost:3001/api/projects/mine?userId=${userId}`, { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        return res.json();
+      })
+      .then(data => setProjects(data))
+      .catch(error => console.error('Error fetching projects:', error));
+  };
 
      useEffect(() => {
-      fetch('http://localhost:3000/api/projects/mine', { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => setProjects(data));
+      fetchProjects();
 
-      fetch('http://localhost:3000/api/activity', { credentials: 'include' })
+      fetch(`http://localhost:3001/api/activity/`, { credentials: 'include' })
         .then(res => res.json())
         .then(data => setActivities(data));
-    }, []);
-
+    }, [userId]);
 
 
 
   // Handler for creating a new project
   const handleNewProject = async (projectData) => {
-    const response = await fetch('http://localhost:3000/api/projects', {
+
+    if (!userId || !username) {
+      alert('User not logged in');
+      return;
+    }
+
+    console.log('Creating project with data:', { ...projectData, userId, username });
+
+    const response = await fetch('http://localhost:3001/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(projectData)
+      body: JSON.stringify({ ...projectData, userId, username }),
     });
-    const data = await response.json();
+    
     if (response.ok) {
-      setProjects(prev => [...prev, data.project]);
+      fetchProjects(); // Refetch projects to get the updated list
+    } else {
+      const data = await response.json();
+      console.error("Failed to create project:", data.message);
     }
   };
 

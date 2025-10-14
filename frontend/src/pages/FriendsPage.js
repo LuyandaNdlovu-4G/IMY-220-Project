@@ -5,17 +5,28 @@ function FriendsPage() {
   const [friends, setFriends] = useState([]);
   const [activities, setActivities] = useState({});
   const [emailToAdd, setEmailToAdd] = useState('');
+  const userId = localStorage.getItem('userId');
 
-  // Fetch friends on mount
-  useEffect(() => {
-    fetch('http://localhost:3000/api/friends', { credentials: 'include' })
+  const fetchFriends = () => {
+    if (!userId) return;
+    fetch('http://localhost:3001/api/friends', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => setFriends(data || []));
-  }, []);
+  };
 
-  
-  useEffect(() => {
-    fetch('http://localhost:3000/api/activity/local', { credentials: 'include' })
+  const fetchLocalActivity = () => {
+    if (!userId) return;
+    fetch('http://localhost:3001/api/activity/local', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => {
         // Group activities by user
@@ -26,28 +37,39 @@ function FriendsPage() {
         });
         setActivities(grouped);
       });
-  }, [friends]);
+  };
+
+  // Fetch friends on mount
+  useEffect(() => {
+    fetchFriends();
+    fetchLocalActivity();
+  }, [userId]);
 
   const handleAddFriend = async () => {
-    if (!emailToAdd.trim()) return;
-    await fetch('http://localhost:3000/api/friends', {
+    if (!emailToAdd.trim() || !userId) return;
+    await fetch('http://localhost:3001/api/friends', {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId
+      },
       body: JSON.stringify({ email: emailToAdd })
     });
     setEmailToAdd('');
     // Refresh friends list
-    fetch('http://localhost:3000/api/friends', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setFriends(data || []));
+    fetchFriends();
   };
 
 
   const handleRemoveFriend = async (friendId) => {
-    await fetch(`http://localhost:3000/api/friends/${friendId}`, {
+    if (!userId) return;
+    await fetch(`http://localhost:3001/api/friends/${friendId}`, {
       method: 'DELETE',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
     });
     setFriends(prev => prev.filter(f => f._id !== friendId));
   };

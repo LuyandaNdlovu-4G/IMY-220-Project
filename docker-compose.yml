@@ -1,28 +1,43 @@
-version: '3'
+version: '3.8'
 services:
-  backend:
-    build: ./backend
-    ports:
-      - "3000:3000"
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/imy220
-      - SESSION_SECRET=your_secret
-    depends_on:
-      - mongo
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
-
   mongo:
-    image: mongo
+    image: mongo:7
+    container_name: imy220-project-mongo
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - imy220-net
+
+  backend:
+    build: ./backend
+    container_name: imy220-project-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGO_URI=mongodb+srv://test-user:test-password@imy220.o3cggku.mongodb.net/?retryWrites=true&w=majority&appName=IMY220_D2
+      - PORT=3001
+    depends_on:
+      - mongo
+    networks:
+      - imy220-net
+
+  frontend:
+    image: luyandandlovu/imy220-frontend
+    container_name: imy220-project-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://backend:3001
+    depends_on:
+      - backend
+    networks:
+      - imy220-net
 
 volumes:
   mongo-data:
+
+networks:
+  imy220-net:
+    driver: bridge
