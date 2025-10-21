@@ -1,10 +1,8 @@
 import React from 'react';
 
 function ProfileInfo({ profile }) {
-  const defaultImg = '/assets/images/User Icon.png'; // relative to public folder
-  const avatarSrc = profile.details?.avatar
-    ? `/${profile.details.avatar.replace(/\\/g, '/')}`
-    : defaultImg;
+  const defaultImg = '/assets/images/User Icon.png';
+  const avatarSrc = profile.details?.avatar ? profile.details.avatar : defaultImg;
 
   return (
     <div className="profile-info">

@@ -4,6 +4,7 @@ const cors = require("cors");
 const { ObjectId } = require("mongodb");
 const { connectDB, getCollection} = require("./db/conn");
 const multer = require("multer");
+const fs = require("fs");
 
 const app = express();
 
@@ -20,6 +21,8 @@ const port = 3001;
 
 //handle image uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const upload = multer({ dest: path.join(__dirname, "uploads/") });
 
 // Connect to database
 connectDB().then(() => {
@@ -395,8 +398,8 @@ app.get("/api/projects/:id", async (req, res) => {
       return res.status(500).json({ message: "Database not initialized." });
     }
 
-    if (!ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: "Invalid project ID." });
+    if (!userId || !ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Valid user ID is required in headers." });
     }
 
     const project = await projects.findOne(
@@ -407,21 +410,21 @@ app.get("/api/projects/:id", async (req, res) => {
       return res.status(404).json({ message: "Project not found." });
     }
 
-    if (!userId || !ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Valid user ID is required in headers." });
-    }
 
-    // Check if user is a member
+
+    // Check if user is a member or a friend of the owner
+    const owner = await users.findOne({ _id: project.owner });
     const isMember = project.members.some(
       (m) => m.user.toString() === userId
     );
+    const isFriendOfOwner = owner.friends.some(friendId => friendId.toString() === userId);
 
-    if (!isMember) {
-      return res.status(403).json({ message: "You are not a member of this project." });
+    if (!isMember && !isFriendOfOwner) {
+      return res.status(403).json({ message: "You are not authorized to view this project." });
     }
 
     // Populate owner
-    const owner = await users.findOne(
+    const ownerDetails = await users.findOne(
       { _id: project.owner },
       { projection: { username: 1, email: 1 } }
     );
@@ -440,23 +443,28 @@ app.get("/api/projects/:id", async (req, res) => {
       })
     );
 
-    // Populate files.uploadedBy
+    // Populate files.uploadedBy and files.checkedOutBy
     const files = await Promise.all(
       (project.files || []).map(async (file) => {
         const uploadedByUser = await users.findOne(
           { _id: file.uploadedBy },
           { projection: { username: 1 } }
         );
+        const checkedOutByUser = file.checkedOutBy ? await users.findOne(
+          { _id: file.checkedOutBy },
+          { projection: { username: 1 } }
+        ) : null;
         return {
           ...file,
-          uploadedBy: uploadedByUser ? { _id: file.uploadedBy, username: uploadedByUser.username } : null
+          uploadedBy: uploadedByUser ? { _id: file.uploadedBy, username: uploadedByUser.username } : null,
+          checkedOutBy: checkedOutByUser ? { _id: file.checkedOutBy, username: checkedOutByUser.username } : null
         };
       })
     );
 
     res.json({
       ...project,
-      owner: owner ? { _id: project.owner, username: owner.username, email: owner.email } : null,
+      owner: ownerDetails ? { _id: project.owner, username: ownerDetails.username, email: ownerDetails.email } : null,
       members,
       files
     });
@@ -501,9 +509,14 @@ app.post("/api/friends", async (req, res) => {
       return res.status(409).json({ message: "Already friends." });
     }
 
+    // Use $addToSet to create a mutual friendship and prevent duplicates
     await users.updateOne(
       { _id: new ObjectId(userId) },
-      { $push: { friends: friend._id } }
+      { $addToSet: { friends: friend._id } }
+    );
+    await users.updateOne(
+      { _id: friend._id },
+      { $addToSet: { friends: new ObjectId(userId) } }
     );
 
     res.json({ message: `Friend ${friend.username} added successfully!` });
@@ -610,7 +623,6 @@ app.get("/api/friends/:id/projects", async (req, res) => {
   }
 });
 
-
 // DELETE PROJECT (owner only)
 app.delete("/api/projects/:id", async (req, res) => {
   try {
@@ -665,7 +677,6 @@ app.delete("/api/friends/:friendId", async (req, res) => {
   }
 });
 
-
 // GET - SEARCH
 app.get("/api/search", async (req, res) => {
   try {
@@ -703,141 +714,146 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
+// ... existing code ...
+// This route is deprecated in favor of file-level checkouts.
+// app.post("/api/projects/:id/checkout", ...
 
-//POST - CHECK OUT PROJECT
-app.post("/api/projects/:id/checkout", async (req, res) => {
-  try {
-    const projects = req.app.locals.projects;
-    const activities = req.app.locals.activities;
-    const userId = req.headers['user-id'];
-    const username = req.headers['username'];
+// This route is deprecated in favor of file-level checkins.
+// app.post("/api/projects/:id/checkin", ...
+// ... existing code ...
 
-    if (!userId || !ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Valid user ID is required in headers." });
-    }
-
-    const project = await projects.findOne({ _id: new ObjectId(req.params.id) });
-    if (!project) return res.status(404).json({ message: "Project not found." });
-
-    // Check if user is a member
-    const isMember = project.members?.some(m =>
-      m.user.toString() === userId
-    );
-    if (!isMember) {
-      return res.status(403).json({ message: "You must be a project member to check out." });
-    }
-
-    // Ensure project is not already checked out
-    if (project.status !== "checkedIn") {
-      return res.status(400).json({
-        message: "Project is already checked out.",
-        checkedOutBy: project.checkedOutBy
-      });
-    }
-
-    // Lock the project
-    await projects.updateOne(
-      { _id: new ObjectId(req.params.id) },
-      { $set: { status: "checkedOut", checkedOutBy: new ObjectId(userId) } }
-    );
-
-    // Log activity
-    await activities.insertOne({
-      type: "checkout",
-      project: project._id,
-      user: new ObjectId(userId),
-      createdAt: new Date()
-    });
-
-    res.json({
-      message: "Project checked out successfully.",
-      project: {
-        id: project._id,
-        status: "checkedOut",
-        checkedOutBy: username
-      }
-    });
-  } catch (err) {
-    console.error("Checkout error:", err);
-    res.status(500).json({ message: "Failed to check out project." });
-  }
-});
-
-
-// POST - CHECK IN PROJECT
-app.post("/api/projects/:id/checkin", async (req, res) => {
-  const { message, version, newFiles = [] } = req.body;
+// POST - check out file
+app.post("/api/files/:fileId/checkout", async (req, res) => {
+  const projects = req.app.locals.projects;
+  const users = req.app.locals.users;
+  const fileId = req.params.fileId;
   const userId = req.headers['user-id'];
 
-  if (!userId || !ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: "Valid user ID is required in headers." });
+  if (!ObjectId.isValid(fileId)) return res.status(400).json({ message: "Invalid file ID." });
+  if (!userId || !ObjectId.isValid(userId)) return res.status(401).json({ message: "Unauthorized." });
+
+  const project = await projects.findOne({ "files._id": new ObjectId(fileId) });
+  if (!project) return res.status(404).json({ message: "File not found in any project." });
+
+  const fileToCheckout = project.files.find(f => f._id.toString() === fileId);
+  if (fileToCheckout.status === "checkedOut") {
+    return res.status(409).json({ message: "File is already checked out." });
   }
 
-  try {
-    const projects = req.app.locals.projects;
-    const activities = req.app.locals.activities;
+  await projects.updateOne(
+    { "files._id": new ObjectId(fileId) },
+    { $set: { "files.$.status": "checkedOut", "files.$.checkedOutBy": new ObjectId(userId) } }
+  );
 
-    const project = await projects.findOne({ _id: new ObjectId(req.params.id) });
-    if (!project) return res.status(404).json({ message: "Project not found." });
+  // Prepare metadata header
+  const user = await users.findOne({ _id: new ObjectId(userId) });
+  const metadataHeader = `
+==================================================
+File Metadata
+--------------------------------------------------
+Project: ${project.projectName}
+File: ${fileToCheckout.fileName}
+Version: ${project.version}
+Checked Out By: ${user ? user.username : 'Unknown'}
+Checked Out At: ${new Date().toUTCString()}
+==================================================
 
-    // Only the user who checked out can check in
-    if (project.checkedOutBy?.toString() !== userId) {
-      return res.status(403).json({ message: "Only the user who checked out the project can check it in." });
+`;
+
+  // Read file, prepend header, and send
+  const filePath = path.resolve(fileToCheckout.filePath);
+  fs.readFile(filePath, (err, fileContent) => {
+    if (err) {
+      console.error("File read error:", err);
+      return res.status(500).json({ message: "Error reading file." });
     }
 
-    // Prepare file metadata
-    const fileMetadata = newFiles.map(f => ({
-      fileName: f.fileName,
-      filePath: f.filePath,
-      uploadedBy: new ObjectId(userId),
-      uploadedAt: new Date(),
-      size: f.size,
-      mimeType: f.mimeType
-    }));
+    const contentWithHeader = Buffer.concat([Buffer.from(metadataHeader), fileContent]);
 
-    // Update project
-    await projects.updateOne(
-      { _id: new ObjectId(req.params.id) },
-      {
-        $push: { files: { $each: fileMetadata } },
-        $set: {
-          status: "checkedIn",
-          checkedOutBy: null,
-          ...(version && { version })
-        }
-      }
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="${fileToCheckout.fileName}"`);
+    res.setHeader('Content-Type', fileToCheckout.mimeType);
+    res.setHeader('Content-Length', contentWithHeader.length);
+    res.send(contentWithHeader);
+  });
+});
 
-    // Log activity
-    const activityDoc = {
-      type: "checkin",
-      project: project._id,
-      user: new ObjectId(userId),
-      message: message || "No message provided.",
-      version: version || project.version,
-      files: fileMetadata.map(f => ({
-        fileName: f.fileName,
-        filePath: f.filePath
-      })),
-      createdAt: new Date()
-    };
-    const result = await activities.insertOne(activityDoc);
+// GET - ALL USERS
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = req.app.locals.users;
 
-    res.json({
-      message: "Project checked in successfully.",
-      activity: {
-        id: result.insertedId,
-        message: activityDoc.message,
-        version: activityDoc.version,
-        filesAdded: activityDoc.files.length
-      }
-    });
+    const allUsers = await users.find().project({ password: 0 }).toArray();
+
+    res.json(allUsers);
   } catch (err) {
-    console.error("Checkin error:", err);
-    res.status(500).json({ message: "Failed to check in project." });
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Failed to fetch users." });
   }
 });
 
+// POST - check in file
+app.post("/api/files/:fileId/checkin", upload.single("file"), async (req, res) => {
+  const projects = req.app.locals.projects;
+  const activities = req.app.locals.activities;
+  const fileId = req.params.fileId;
+  const userId = req.headers['user-id'];
+  const { message, version } = req.body;
+
+  if (!req.file) {
+    return res.status(400).json({ message: "A file upload is required to check in." });
+  }
+
+  if (!ObjectId.isValid(fileId)) return res.status(400).json({ message: "Invalid file ID." });
+  if (!userId || !ObjectId.isValid(userId)) return res.status(401).json({ message: "Unauthorized." });
+
+  const project = await projects.findOne({ "files._id": new ObjectId(fileId) });
+  if (!project) return res.status(404).json({ message: "File not found in any project." });
+
+  const fileToCheckIn = project.files.find(f => f._id.toString() === fileId);
+  if (fileToCheckIn.checkedOutBy?.toString() !== userId) {
+      return res.status(403).json({ message: "You cannot check in a file you did not check out." });
+  }
+
+  // Update file metadata and status
+  let fileUpdateFields = {
+    "files.$.status": "checkedIn",
+    "files.$.checkedOutBy": null,
+    "files.$.uploadedAt": new Date()
+  };
+
+  // If a new file is uploaded, update file info
+  if (req.file) {
+    fileUpdateFields["files.$.filePath"] = req.file.path;
+    fileUpdateFields["files.$.fileName"] = req.file.originalname;
+    fileUpdateFields["files.$.size"] = req.file.size;
+    fileUpdateFields["files.$.mimeType"] = req.file.mimetype;
+  }
+
+  await projects.updateOne(
+    { "files._id": new ObjectId(fileId) },
+    { $set: fileUpdateFields }
+  );
+
+  // Also update project version if provided
+  if (version) {
+    await projects.updateOne(
+      { _id: project._id },
+      { $set: { version: version, updatedAt: new Date() } }
+    );
+  }
+
+  // Log activity
+  await activities.insertOne({
+    type: "checkin_file",
+    project: project._id,
+    user: new ObjectId(userId),
+    message: message || `Checked in file: ${fileToCheckIn.fileName}`,
+    version: version || project.version,
+    createdAt: new Date()
+  });
+
+  res.json({ message: "File checked in successfully." });
+});
 
 // GET - GLOBAL ACTIVITY FEED
 app.get("/api/activity", async (req, res) => {
@@ -1006,9 +1022,6 @@ app.get("/api/projects/:id/activity", async (req, res) => {
 });
 
 
-const upload = multer({ dest: path.join(__dirname, "uploads/") });
-
-
 //PUT - update project details and upload files (owner only)
 app.put("/api/projects/:id", upload.array("files"), async (req, res) => {
   const { projectName, description, hashtags, type, version } = req.body;
@@ -1031,9 +1044,10 @@ app.put("/api/projects/:id", upload.array("files"), async (req, res) => {
     const updateFields = {};
     if (projectName !== undefined) updateFields.projectName = projectName.trim();
     if (description !== undefined) updateFields.description = description.trim();
-    if (hashtags !== undefined) updateFields.hashtags = Array.isArray(hashtags)
-      ? hashtags.map(tag => tag.toLowerCase().trim())
-      : (typeof hashtags === "string" ? hashtags.split(",").map(tag => tag.toLowerCase().trim()) : []);
+    if (hashtags !== undefined) {
+        const parsedHashtags = typeof hashtags === 'string' ? hashtags.split(',').map(tag => tag.trim().toLowerCase()) : [];
+        updateFields.hashtags = parsedHashtags;
+    }
     if (type !== undefined) updateFields.type = type;
     if (version !== undefined) updateFields.version = version;
     updateFields.updatedAt = new Date();
@@ -1044,7 +1058,7 @@ app.put("/api/projects/:id", upload.array("files"), async (req, res) => {
       newFiles = req.files.map(file => ({
         _id: new ObjectId(),
         fileName: file.originalname,
-        filePath: file.path,
+        filePath: path.join(__dirname, 'uploads', file.filename), // Store absolute path
         uploadedBy: new ObjectId(userId),
         uploadedAt: new Date(),
         size: file.size,
@@ -1052,46 +1066,61 @@ app.put("/api/projects/:id", upload.array("files"), async (req, res) => {
         status: "checkedIn",
         checkedOutBy: null
       }));
-      await projects.updateOne(
-        { _id: new ObjectId(projectId) },
-        { $push: { files: { $each: newFiles } } }
-      );
+      updateFields.$push = { files: { $each: newFiles } };
     }
 
-    // Update project details
-    await projects.updateOne(
-      { _id: new ObjectId(projectId) },
-      { $set: updateFields }
-    );
+    // Handle file removals
+    if (req.body.keepFiles) {
+        const keepFiles = JSON.parse(req.body.keepFiles);
+        await projects.updateOne(
+            { _id: new ObjectId(projectId) },
+            { $pull: { files: { _id: { $nin: keepFiles.map(id => new ObjectId(id)) } } } }
+        );
+    }
+    
+    // Perform updates
+    const updateOperation = {};
+    const { $push, ...setFields } = updateFields;
 
-    // Remove files not in keepFiles
-    const keepFiles = req.body.keepFiles ? JSON.parse(req.body.keepFiles) : [];
-    await projects.updateOne(
-      { _id: new ObjectId(projectId) },
-      { $pull: { files: { _id: { $nin: keepFiles.map(id => new ObjectId(id)) } } } }
-    );
+    if (Object.keys(setFields).length > 0) {
+        updateOperation.$set = setFields;
+    }
+    if ($push) {
+        updateOperation.$push = $push;
+    }
+
+    if (Object.keys(updateOperation).length > 0) {
+        await projects.updateOne(
+            { _id: new ObjectId(projectId) },
+            updateOperation
+        );
+    }
 
     const updatedProject = await projects.findOne({ _id: new ObjectId(projectId) });
 
+    // Populate files before sending back
+    const populatedFiles = await Promise.all(
+        (updatedProject.files || []).map(async (file) => {
+            const uploadedByUser = await req.app.locals.users.findOne(
+                { _id: file.uploadedBy },
+                { projection: { username: 1 } }
+            );
+            return {
+                ...file,
+                uploadedBy: uploadedByUser ? { _id: file.uploadedBy, username: uploadedByUser.username } : null
+            };
+        })
+    );
+
     res.json({
       message: "Project updated successfully!",
-      project: {
-        id: updatedProject._id.toString(),
-        projectName: updatedProject.projectName,
-        description: updatedProject.description,
-        hashtags: updatedProject.hashtags,
-        type: updatedProject.type,
-        version: updatedProject.version,
-        files: updatedProject.files,
-        updatedAt: updatedProject.updatedAt
-      }
+      project: { ...updatedProject, files: populatedFiles }
     });
   } catch (err) {
     console.error("Update project error:", err);
     res.status(500).json({ message: "Failed to update project." });
   }
 });
-
 
 //GET - download file
 app.get("/api/files/:fileId", async (req, res) => {
@@ -1104,58 +1133,50 @@ app.get("/api/files/:fileId", async (req, res) => {
   res.download(file.filePath, file.fileName);
 });
 
+// GET A SPECIFIC USER'S PROFILE
+app.get("/api/users/:userId/profile", async (req, res) => {
+  try {
+    const users = req.app.locals.users;
+    const projects = req.app.locals.projects;
+    const userId = req.params.userId;
 
-// POST - check out/in file
-app.post("/api/files/:fileId/checkout", async (req, res) => {
-  const projects = req.app.locals.projects;
-  const fileId = req.params.fileId;
-  const userId = req.headers['user-id'];
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID." });
+    }
 
-  if (!ObjectId.isValid(fileId)) return res.status(400).send("Invalid file ID");
+    const user = await users.findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { password: 0 } } // Exclude password
+    );
 
-  const project = await projects.findOne({ "files._id": new ObjectId(fileId) });
-  if (!project) return res.status(404).send("File not found");
-
-  await projects.updateOne(
-    { "files._id": new ObjectId(fileId) },
-    { $set: { "files.$.status": "checkedOut", "files.$.checkedOutBy": new ObjectId(userId) } }
-  );
-  res.json({ message: "File checked out." });
-});
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
 
 
-// POST - check in file
-app.post("/api/files/:fileId/checkin", upload.single("file"), async (req, res) => {
-  const projects = req.app.locals.projects;
-  const fileId = req.params.fileId;
-  const userId = req.headers['user-id'];
+    console.log(user);
+    // Construct full avatar URL if it exists
+    if (user.details && user.details.avatar) {
+      user.details.avatar = `http://localhost:3001${user.details.avatar}`;
+    }
 
-  if (!ObjectId.isValid(fileId)) return res.status(400).send("Invalid file ID");
+    // Fetch user's projects
+    const userProjects = await projects.find({ owner: new ObjectId(userId) }).toArray();
 
-  const project = await projects.findOne({ "files._id": new ObjectId(fileId) });
-  if (!project) return res.status(404).send("File not found");
+    // Fetch user's friends' details
+    const friendIds = user.friends ? user.friends.map(id => new ObjectId(id)) : [];
+    const userFriends = await users.find({ _id: { $in: friendIds } }).project({ username: 1, email: 1 }).toArray();
 
-  // Update file metadata and status
-  let updateFields = {
-    "files.$.status": "checkedIn",
-    "files.$.checkedOutBy": null
-  };
+    res.json({
+      profile: user,
+      projects: userProjects,
+      friends: userFriends
+    });
 
-  // If a new file is uploaded, update file info
-  if (req.file) {
-    updateFields["files.$.fileName"] = req.file.originalname;
-    updateFields["files.$.filePath"] = req.file.path;
-    updateFields["files.$.uploadedBy"] = new ObjectId(userId);
-    updateFields["files.$.uploadedAt"] = new Date();
-    updateFields["files.$.size"] = req.file.size;
-    updateFields["files.$.mimeType"] = req.file.mimetype;
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ message: "Failed to fetch user profile." });
   }
-
-  await projects.updateOne(
-    { "files._id": new ObjectId(fileId) },
-    { $set: updateFields }
-  );
-  res.json({ message: "File checked in and uploaded." });
 });
 
 // GET - PROFILE
@@ -1171,6 +1192,12 @@ app.get("/api/profile", async (req, res) => {
       { projection: { username: 1, email: 1, details: 1 } }
     );
     if (!user) return res.status(404).json({ message: "User not found." });
+
+    // Construct full avatar URL if it exists
+    if (user.details && user.details.avatar) {
+      user.details.avatar = `http://localhost:3001${user.details.avatar}`;
+    }
+
     res.json(user);
   } catch (err) {
     console.error("Profile details error:", err);
@@ -1179,26 +1206,82 @@ app.get("/api/profile", async (req, res) => {
 });
 
 
-app.put("/api/profile/details", async (req, res) => {
+app.put("/api/profile/details", upload.single('avatar'), async (req, res) => {
   try {
     const users = req.app.locals.users;
     const userId = req.headers['user-id'];
     if (!userId || !ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Valid user ID is required in headers." });
     }
-    const { bio, avatar, location, skills } = req.body;
+    const { bio, location, skills } = req.body;
     const updateFields = {};
     if (bio !== undefined) updateFields["details.bio"] = bio;
-    if (avatar !== undefined) updateFields["details.avatar"] = avatar;
     if (location !== undefined) updateFields["details.location"] = location;
     if (skills !== undefined) updateFields["details.skills"] = skills;
-    await users.updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: updateFields }
-    );
+
+    // Handle avatar upload
+    if (req.file) {
+      updateFields["details.avatar"] = `/uploads/${req.file.filename}`;
+    }
+
+    if (Object.keys(updateFields).length > 0) {
+      await users.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: updateFields }
+      );
+    }
+    
     res.json({ message: "Profile details updated." });
   } catch (err) {
     console.error("Update profile details error:", err);
     res.status(500).json({ message: "Failed to update profile details." });
   }
+});
+
+// POST - UPLOAD FILE TO PROJECT
+app.post("/api/projects/:id/files", upload.array("files"), async (req, res) => {
+  const projects = req.app.locals.projects;
+  const activities = req.app.locals.activities;
+  const projectId = req.params.id;
+  const userId = req.headers['user-id'];
+
+  if (!ObjectId.isValid(projectId)) return res.status(400).json({ message: "Invalid project ID." });
+  if (!userId || !ObjectId.isValid(userId)) return res.status(401).json({ message: "Unauthorized." });
+
+  const project = await projects.findOne({ _id: new ObjectId(projectId) });
+  if (!project) return res.status(404).json({ message: "Project not found." });
+
+  if (project.owner.toString() !== userId) {
+    return res.status(403).json({ message: "Only the project owner can add files." });
+  }
+
+  const newFiles = req.files.map(file => ({
+    _id: new ObjectId(),
+    fileName: file.originalname,
+    filePath: path.join(__dirname, 'uploads', file.filename), // Store absolute path
+    size: file.size,
+    mimeType: file.mimetype,
+    status: "checkedIn",
+    checkedOutBy: null,
+    uploadedAt: new Date()
+  }));
+
+  await projects.updateOne(
+    { _id: new ObjectId(projectId) },
+    { $push: { files: { $each: newFiles } } }
+  );
+
+  // Log activity
+  await activities.insertMany(
+    newFiles.map(file => ({
+      type: "file_uploaded",
+      project: projectId,
+      user: new ObjectId(userId),
+      message: `Uploaded file: ${file.fileName}`,
+      version: project.version,
+      createdAt: new Date()
+    }))
+  );
+
+  res.status(201).json({ message: "Files uploaded successfully." });
 });

@@ -799,23 +799,19 @@ body {
 .activity-feed-container {
   background-color: #1A1A1A;
   padding: 2rem;
-  border-radius: 1px;
+  border-radius: 8px;
   border: 2px solid #2A2A2A;
 }
 
 /* ============================= projects page =========================== */
 .projects-page .main-content {
-  display: flex;
-  justify-content: center; /* Center the content */
-  padding: 2rem;
-  background-color: #0A0A0A;
-  min-height: calc(100vh - 74px);
-  color: #E5E5E5;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
 .projects-page .content-container {
   width: 100%;
-  max-width: 900px; /* Limit the width for better readability */
 }
 
 .projects-header {
@@ -825,69 +821,228 @@ body {
   margin-bottom: 2rem;
 }
 
+.projects-header h1 {
+    font-weight: 700;
+    font-size: 2.5rem;
+    letter-spacing: -1px;
+}
+
+.new-project-btn {
+    font-weight: 600;
+}
+
+.projects-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.project-card {
+  border: 1px solid #2A2A2A;
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1A1A1A;
+  transition: background-color 0.2s, transform 0.2s;
+  cursor: pointer;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.project-card:hover {
+    background-color: #232323;
+    transform: translateY(-4px);
+}
+
+.project-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.project-card h3 {
+  margin: 0;
+  color: #E5E5E5;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.project-card .project-description {
+  margin: 0;
+  color: #A0A0A0;
+  font-size: 1rem;
+}
+
+.project-card .project-owner {
+    margin: 0;
+    color: #7a7a7a;
+    font-size: 0.9rem;
+    padding-top: 0.5rem;
+}
+
+.project-card .view-btn {
+    background-color: transparent;
+    border: 1px solid #3B82F6;
+    color: #3B82F6;
+    font-weight: 600;
+}
+
+.project-list-item {
+  position: relative;
+}
+
+.remove-project-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #d20d0d9e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.project-list-item:hover .remove-project-btn {
+  opacity: 1;
+}
+
 /* ==================================== friends page ==================================== */
 .friends-page .main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
   display: flex;
-  padding: 2rem;
-  gap: 4rem;
-  background-color: #0A0A0A;
-  min-height: calc(100vh - 74px);
-  color: #E5E5E5;
+  flex-direction: column;
 }
 
-.friends-page .left-panel {
+.friends-page h1 {
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  letter-spacing: -1px;
+}
+
+.add-friend-form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  align-items: center;
+}
+
+.add-friend-form input[type="text"] {
   flex: 1;
-  background-color: #1A1A1A;
-  padding: 2rem;
-  border: 2px solid #2A2A2A;
-  border-radius: 1px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #2A2A2A;
+  background: #181818;
+  color: #E5E5E5;
+  font-size: 1rem;
 }
 
-.friends-page .right-panel {
-  flex: 2;
-  background-color: #1A1A1A;
-  padding: 2rem;
-  border: 2px solid #2A2A2A;
-  border-radius: 1px;
+.add-friend-form .add-btn {
+  min-width: 120px;
+  font-weight: 600;
 }
 
 .friends-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 2rem;
 }
 
 .friend-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid #2A2A2A;
-  border-radius: 8px;
-  background-color: #1A1A1A;
-}
-
-.friend-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-}
-
-.friend-info {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  border-radius: 16px;
+  background: #1A1A1A;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+  border: 1px solid #232323;
 }
 
-.friend-info h3 {
+.friend-card .friend-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #232323;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #3B82F6;
+  font-weight: 700;
+}
+
+.friend-card .friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.friend-card .friend-info .friend-name {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #E5E5E5;
+}
+.friend-card .friend-info .friend-email {
+  color: #A0A0A0;
+  font-size: 0.95rem;
+}
+
+.friend-card .remove-btn {
+  background: #d20d0d9e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+}
+
+.friend-activities {
+  margin-top: 0.5rem;
+}
+.friend-activities h4 {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #3B82F6;
+  font-size: 1.1rem;
+}
+.friend-activities ul {
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
-
-.view-profile-btn {
-  text-decoration: none;
-  color: #3B82F6;
-  font-size: 0.9rem;
+.friend-activities li {
+  color: #E5E5E5;
+  margin-bottom: 0.5rem;
+  font-size: 0.98rem;
+  background: #232323;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
 }
-
+.friend-activities li span:first-child {
+  color: #3B82F6;
+  font-weight: 500;
+}
+.friend-activities li span:last-child {
+  color: #A0A0A0;
+  margin-left: 0.5rem;
+  font-size: 0.92rem;
+}
+.friend-activities li.no-activity {
+  color: #A0A0A0;
+  font-size: 0.95rem;
+  background: none;
+  padding: 0;
+}
 /* =========================================================auth pages================================= */
 .auth-page {
   background-color: #0A0A0A;

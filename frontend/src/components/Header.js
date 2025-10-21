@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+  const [userAvatar, setUserAvatar] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -13,7 +14,32 @@ function Header() {
     const storedUsername = localStorage.getItem('username');
     setIsLoggedIn(!!userId);
     setUsername(storedUsername || '');
+    
+    // Fetch user profile data if logged in
+    if (userId) {
+      fetchUserProfile(userId);
+    }
   }, []);
+
+  const fetchUserProfile = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/users/${userId}/profile`, {
+        headers: {
+          'user-id': userId
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.details && userData.details.avatar) {
+          setUserAvatar(userData.details.avatar);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const handleLogout = async () => {
     //Call backend to destroy session
@@ -25,6 +51,7 @@ function Header() {
     localStorage.clear();
     setIsLoggedIn(false);
     setUsername('');
+    setUserAvatar('');
     navigate('/login');
   };
 
@@ -47,7 +74,11 @@ return (
           <input type="text" placeholder="Search..." className="search-input" />
           <Link to="/profile" className="profile-link">{username}</Link>
           <Link to="/profile">
-            <img src="/assets/images/User Icon.png" alt="User Icon" className="user-icon" />
+            <img 
+              src={userAvatar ? `http://localhost:3001/${userAvatar}` : "/assets/images/User Icon.png"} 
+              alt="User Icon" 
+              className="user-icon" 
+            />
           </Link>
           <button className="btn logout-btn" onClick={handleLogout}>Log out</button>
         </div>

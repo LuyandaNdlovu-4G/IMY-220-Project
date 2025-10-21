@@ -12,6 +12,7 @@ function ProjectView() {
   const [files, setFiles] = useState([]);
   const [members, setMembers] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -24,13 +25,25 @@ function ProjectView() {
     })
       .then(res => res.json())
       .then(data => {
-        setProject(data);
-        setFiles(data.files || []);
-        setMembers(data.members || []);
+        if (data && data.owner) {
+          setProject(data);
+          setFiles(data.files || []);
+          setMembers(data.members || []);
+
+          // Determine if the current user can edit
+          const isOwner = data.owner._id === userId;
+          const isMember = data.members?.some(member => member.user?._id === userId);
+          setCanEdit(isOwner || isMember);
+        }
       });
 
     // Fetch project activity
-    fetch(`http://localhost:3001/api/projects/${id}/activity`, { credentials: 'include' })
+    fetch(`http://localhost:3001/api/projects/${id}/activity`, { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
+    })
       .then(res => res.json())
       .then(data => setActivities(data.activities || []));
   }, [id]);
@@ -92,7 +105,7 @@ function ProjectView() {
         <div className="left-panel">
           <Link to="/projects" className="back-link"> &lt; back to projects</Link>
           <h1>{project.projectName}</h1>
-          <ProjectFiles files={files} project={project} onEditProject={handleEditProject}  refreshFiles={refreshFiles}/>
+          <ProjectFiles files={files} project={project} onEditProject={handleEditProject}  refreshFiles={refreshFiles} canEdit={canEdit}/>
           <ActivityFeed activities={activities} />
         </div>
         <div className="right-panel">

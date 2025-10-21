@@ -1,41 +1,78 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import EditProjectPopup from "./EditProjectPopup";
+import CheckInPopup from "./CheckInPopup"; // Assuming CheckInPopup is in its own file
 
-function ProjectFiles({ files, project, onEditProject, refreshFiles }) {
+function ProjectFiles({ files, project, onEditProject, refreshFiles, canEdit }) {
   const [showEdit, setShowEdit] = useState(false);
   const [checkInFileId, setCheckInFileId] = useState(null);
   const currentUserId = localStorage.getItem("userId");
-  const downloadRefs = useRef({});
 
-  // Combined check out and download
   const handleCheckOutAndDownload = async (fileId) => {
-    await fetch(`http://localhost:3001/api/files/${fileId}/checkout`, {
+    const userId = localStorage.getItem('userId');
+    const response = await fetch(`http://localhost:3001/api/files/${fileId}/checkout`, {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      }
     });
-    // Trigger download
-    if (downloadRefs.current[fileId]) {
-      downloadRefs.current[fileId].click();
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred.' }));
+      alert(`Error checking out file: ${errorData.message}`);
+      return;
     }
-    // Refresh files to update status
-    if (refreshFiles) refreshFiles();
+
+    // The backend sends the file as a download. We need to handle the blob response.
+    const contentDisposition = response.headers.get('content-disposition');
+    let filename = 'download';
+    if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+        if (filenameMatch && filenameMatch.length > 1) {
+            filename = filenameMatch[1];
+        }
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    if (refreshFiles) {
+      refreshFiles();
+    }
   };
 
-  // Show check-in popup for file upload
   const handleCheckIn = (fileId) => {
     setCheckInFileId(fileId);
   };
 
-  // Handle actual check-in (upload)
   const handleCheckInUpload = async (formData) => {
-    await fetch(`http://localhost:3001/api/files/${checkInFileId}/checkin`, {
+    if (!checkInFileId) return;
+    const userId = localStorage.getItem('userId');
+    const response = await fetch(`http://localhost:3001/api/files/${checkInFileId}/checkin`, {
       method: 'POST',
       credentials: 'include',
+      headers: {
+        'user-id': userId
+      },
       body: formData
     });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred.' }));
+        alert(`Error checking in file: ${errorData.message}`);
+    }
+
     setCheckInFileId(null);
-    // Refresh files to update status
-    if (refreshFiles) refreshFiles();
+    if (refreshFiles) {
+      refreshFiles();
+    }
   };
 
   return (
@@ -43,45 +80,43 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles }) {
       <h2>Files</h2>
       <div className="file-list">
         {files.length === 0 && <p>No files uploaded yet.</p>}
-        {files.map((file, index) => (
-          <div key={index} className="file-item">
-            <span>
-              <strong>{file.fileName}</strong>
-            </span>
-            <span>Uploaded: {new Date(file.uploadedAt).toLocaleString()}</span>
-            {file.status && <span>Status: {file.status}</span>}
-            {/* Hidden download link for programmatic click */}
-            <a
-              href={`http://localhost:3001/api/files/${file._id}`}
-              download={file.fileName}
-              ref={el => downloadRefs.current[file._id] = el}
-              style={{ display: "none" }}
-            />
-            {/* Only show Check Out & Download if checked in */}
-            {file.status === "checkedIn" && (
-              <button
-                className="btn check-out-btn"
-                onClick={() => handleCheckOutAndDownload(file._id)}
-              >
-                Check Out & Download
-              </button>
-            )}
-            {/* Only show Check In & Upload if checked out by current user */}
-            {file.status === "checkedOut" &&
-              file.checkedOutBy === currentUserId && (
+        {files.map((file) => (
+          <div key={file._id} className="file-item">
+            <div className="file-item-info">
+              <span className="file-name">{file.fileName}</span>
+              <div className="file-details">
+                <span>Uploaded: {new Date(file.uploadedAt).toLocaleString()}</span>
+                {file.status && <span>Status: {file.status === 'checkedOut' ? `Checked Out` : 'Checked In'}</span>}
+              </div>
+            </div>
+            
+            <div className="file-actions">
+              {canEdit && file.status === "checkedIn" && (
                 <button
-                  className="btn check-in-btn"
-                  onClick={() => handleCheckIn(file._id)}
+                  className="btn check-out-btn"
+                  onClick={() => handleCheckOutAndDownload(file._id)}
                 >
-                  Check In & Upload
+                  Check Out
                 </button>
               )}
+              {canEdit && file.status === "checkedOut" &&
+                file.checkedOutBy === currentUserId && (
+                  <button
+                    className="btn check-in-btn"
+                    onClick={() => handleCheckIn(file._id)}
+                  >
+                    Check In
+                  </button>
+                )}
+            </div>
           </div>
         ))}
       </div>
-      <button className="btn edit-btn" onClick={() => setShowEdit(true)}>
-        edit project
-      </button>
+      {canEdit && (
+        <button className="btn edit-btn" onClick={() => setShowEdit(true)}>
+          edit project
+        </button>
+      )}
       {showEdit && (
         <EditProjectPopup
           project={project}
@@ -89,41 +124,13 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles }) {
           onSave={onEditProject}
         />
       )}
-      {/* Popup for check-in/upload */}
       {checkInFileId && (
         <CheckInPopup
+          project={project}
           onClose={() => setCheckInFileId(null)}
           onUpload={handleCheckInUpload}
         />
       )}
-    </div>
-  );
-}
-
-function CheckInPopup({ onClose, onUpload }) {
-  const [file, setFile] = useState(null);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    await onUpload(formData);
-    onClose();
-  };
-
-  return (
-    <div className="popup-overlay">
-      <div className="popup-card">
-        <h2>Check In & Upload File</h2>
-        <form onSubmit={handleSubmit}>
-          <input type="file" onChange={e => setFile(e.target.files[0])} required />
-          <div className="popup-actions">
-            <button type="button" onClick={onClose} className="btn cancel-btn">Cancel</button>
-            <button type="submit" className="btn save-btn">Upload</button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

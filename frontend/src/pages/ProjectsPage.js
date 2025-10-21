@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import ProjectCard from '../components/ProjectCard';
 import CreateProjectPopup from '../components/CreateProjectPopup';
@@ -48,7 +49,6 @@ function ProjectsPage() {
     hidePopup();
   };
 
-  // Remove project handler
   const handleRemoveProject = async (projectId) => {
     if (!userId) {
       alert('User not logged in');
@@ -62,7 +62,7 @@ function ProjectsPage() {
       }
     });
     if (response.ok) {
-      setProjectsData(prev => prev.filter(p => p._id !== projectId && p.id !== projectId));
+      setProjectsData(prev => prev.filter(p => p._id !== projectId));
     } else {
       const data = await response.json();
       console.error("Failed to delete project:", data.message);
@@ -81,10 +81,12 @@ function ProjectsPage() {
           <div className="projects-list">
             {projectsData.map((project) => (
               <div key={project._id || project.id} className="project-list-item">
-                <ProjectCard project={project} />
+                <Link to={`/projects/${project._id || project.id}`} className="project-card-link">
+                  <ProjectCard project={project} />
+                </Link>
                 <button
                   className="btn remove-btn"
-                  onClick={() => handleRemoveProject(project._id || project.id)}
+                  onClick={() => handleRemoveProject(project._id)}
                 >
                   Remove
                 </button>

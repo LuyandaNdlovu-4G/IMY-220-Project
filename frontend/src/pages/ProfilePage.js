@@ -4,6 +4,8 @@ import ProfileInfo from '../components/ProfileInfo';
 import ProfileDetails from '../components/ProfileDetails';
 import ActivityFeed from '../components/ActivityFeed';
 
+import { useParams, Link } from 'react-router-dom';
+
 function ProfilePage() {
   const [profileData, setProfileData] = useState(null);
   const [projectsData, setProjectsData] = useState([]);
@@ -11,81 +13,80 @@ function ProfilePage() {
   const [activityFeedData, setActivityFeedData] = useState([]);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const { userId: paramUserId } = useParams();
+  const loggedInUserId = localStorage.getItem('userId');
+  const isOwnProfile = !paramUserId || paramUserId === loggedInUserId;
 
-  const userId = localStorage.getItem('userId');
-
-  useEffect(() => {
-    if (!userId) return;
-    fetch('http://localhost:3001/api/profile', { 
-      credentials: 'include',
-      headers: {
-        'user-id': userId
-      }
-    })
-      .then(res => res.json())
-      .then(data => setProfileData(data));
-  }, [userId]);
+  const userIdToFetch = isOwnProfile ? loggedInUserId : paramUserId;
 
   useEffect(() => {
-    if (!userId) return;
-    fetch(`http://localhost:3001/api/projects/mine?userId=${userId}`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setProjectsData(data));
-  }, [userId]);
+    if (!userIdToFetch) return;
 
-  useEffect(() => {
-    if (!userId) return;
-    fetch('http://localhost:3001/api/friends', { 
-      credentials: 'include',
-      headers: {
-        'user-id': userId
-      }
-    })
-      .then(res => res.json())
-      .then(data => setFriendsData(data));
-  }, [userId]);
+    const profileUrl = isOwnProfile 
+      ? 'http://localhost:3001/api/profile' 
+      : `http://localhost:3001/api/users/${userIdToFetch}/profile`;
 
-  useEffect(() => {
-    if (!userId) return;
-    fetch('http://localhost:3001/api/activity', { 
-      credentials: 'include',
-      headers: {
-        'user-id': userId
-      }
+    const headers = { 'user-id': loggedInUserId };
+
+    // Fetch combined profile data if viewing another user's profile
+    if (!isOwnProfile) {
+      fetch(profileUrl, { headers })
+        .then(res => res.json())
+        .then(data => {
+          setProfileData(data.profile);
+          setProjectsData(data.projects || []);
+          setFriendsData(data.friends || []);
+        });
+    } else {
+      // Original fetches for own profile
+      fetch('http://localhost:3001/api/profile', { headers })
+        .then(res => res.json())
+        .then(data => setProfileData(data));
+      
+      fetch(`http://localhost:3001/api/projects/mine?userId=${loggedInUserId}`, { headers })
+        .then(res => res.json())
+        .then(data => setProjectsData(data));
+
+      fetch('http://localhost:3001/api/friends', { headers })
+        .then(res => res.json())
+        .then(data => setFriendsData(data));
+    }
+
+    // Fetch activity feed (always for the displayed user)
+    fetch(`http://localhost:3001/api/activity/local`, { 
+        headers: { 'user-id': userIdToFetch }
     })
       .then(res => res.json())
       .then(data => setActivityFeedData(data));
-  }, [userId]);
+
+  }, [userIdToFetch, isOwnProfile, loggedInUserId]);
 
   const handleEditProfile = async (formData) => {
-    if (!userId) return;
+    if (!loggedInUserId) return;
     await fetch('http://localhost:3001/api/profile/details', {
       method: 'PUT',
-      credentials: 'include',
       headers: {
-        'user-id': userId
+        'user-id': loggedInUserId
       },
       body: formData
     });
     setShowEdit(false);
     // Refresh profile data
     fetch('http://localhost:3001/api/profile', { 
-      credentials: 'include',
       headers: {
-        'user-id': userId
+        'user-id': loggedInUserId
       }
-    })
+     })
       .then(res => res.json())
       .then(data => setProfileData(data));
   };
 
   const handleDeleteAccount = async () => {
-    if (!userId) return;
+    if (!loggedInUserId) return;
     await fetch('http://localhost:3001/api/profile', {
       method: 'DELETE',
-      credentials: 'include',
       headers: {
-        'user-id': userId
+        'user-id': loggedInUserId
       }
     });
     // Redirect to login or home page after deletion
@@ -109,19 +110,27 @@ function ProfilePage() {
       <div className="main-content">
         <div className="left-panel">
           <ProfileInfo profile={profileData} />
-          <button className="btn edit-btn" onClick={() => setShowEdit(true)}>Edit Profile</button>
-          <button className="btn delete-btn" onClick={() => setShowDelete(true)}>Delete Account</button>
+          {isOwnProfile && (
+            <>
+              <button className="btn edit-btn" onClick={() => setShowEdit(true)}>Edit Profile</button>
+              <button className="btn delete-btn" onClick={() => setShowDelete(true)}>Delete Account</button>
+            </>
+          )}
           <div className="profile-sections">
             <div className="section">
               <h2>Projects</h2>
               {projectsData.map((project, index) => (
-                <p key={project._id || index}>{project.projectName || project.name}</p>
+                <p key={project._id || index}>
+                  <Link to={`/projects/${project._id}`}>{project.projectName || project.name}</Link>
+                </p>
               ))}
             </div>
             <div className="section">
               <h2>Friends</h2>
               {friendsData.map((friend, index) => (
-                <p key={friend._id || index}>{friend.username || friend.name}</p>
+                <p key={friend._id || index}>
+                  <Link to={`/profile/${friend._id}`}>{friend.username || friend.name}</Link>
+                </p>
               ))}
             </div>
           </div>
