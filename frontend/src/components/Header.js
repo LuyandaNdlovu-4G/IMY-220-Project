@@ -32,8 +32,8 @@ function Header() {
       
       if (response.ok) {
         const userData = await response.json();
-        if (userData.details && userData.details.avatar) {
-          setUserAvatar(userData.details.avatar);
+        if (userData.profile && userData.profile.details && userData.profile.details.avatar) {
+          setUserAvatar(userData.profile.details.avatar);
         }
       }
     } catch (error) {
@@ -75,7 +75,7 @@ return (
           <Link to="/profile" className="profile-link">{username}</Link>
           <Link to="/profile">
             <img 
-              src={userAvatar ? `http://localhost:3001/${userAvatar}` : "/assets/images/User Icon.png"} 
+              src={userAvatar || "/assets/images/User Icon.png"} 
               alt="User Icon" 
               className="user-icon" 
             />

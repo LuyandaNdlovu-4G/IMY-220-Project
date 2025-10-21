@@ -23,11 +23,28 @@ function HomePage() {
   };
 
      useEffect(() => {
-      fetchProjects();
-
-      fetch(`http://localhost:3001/api/activity/`, { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => setActivities(data));
+      if (userId) {
+        fetchProjects();
+        
+        // Fetch local activities (user + friends) instead of global activities
+        fetch(`http://localhost:3001/api/activity/local`, { 
+          credentials: 'include',
+          headers: {
+            'user-id': userId
+          }
+        })
+          .then(res => {
+            if (res.ok) {
+              return res.json();
+            }
+            throw new Error('Failed to fetch activities');
+          })
+          .then(data => setActivities(data))
+          .catch(error => {
+            console.error('Error fetching activities:', error);
+            setActivities([]); // Set empty array on error
+          });
+      }
     }, [userId]);
 
 
@@ -66,7 +83,7 @@ function HomePage() {
           onNewProject={handleNewProject} 
         />
         <div className="right-panel">
-          <ActivityFeed activities={activities} />
+          <ActivityFeed activities={userId ? activities : []} />
         </div>
       </div>
     </div>

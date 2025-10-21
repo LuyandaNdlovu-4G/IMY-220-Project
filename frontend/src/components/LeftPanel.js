@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import ProjectCard from './ProjectCard';
 import usePopup from '../hooks/usePopup';
 import CreateProjectPopup from './CreateProjectPopup';
@@ -15,7 +16,9 @@ function LeftPanel({ projects, onNewProject }) {
       <div className="projects-list">
         {safeProjects.length > 0 ? (
           safeProjects.map((project) => (
-            <ProjectCard key={project._id || project.id} project={project} />
+            <Link key={project._id || project.id} to={`/projects/${project._id || project.id}`} className="project-card-link">
+              <ProjectCard project={project} />
+            </Link>
           ))
         ) : (
           <div className="no-projects">No projects to show.</div>
