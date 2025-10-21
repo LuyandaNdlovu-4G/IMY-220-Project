@@ -22,11 +22,13 @@ function EditProjectPopup({ project, onClose, onSave }) {
 
     // Prepare form data for file upload and project update
     const formData = new FormData();
+    
     formData.append('projectName', projectName);
     formData.append('description', description);
     formData.append('hashtags', hashtags);
     formData.append('type', type);
     formData.append('version', version);
+    
     files.forEach(file => formData.append('files', file));
     // Send IDs of files to keep
     formData.append('keepFiles', JSON.stringify(existingFiles.map(file => file._id)));

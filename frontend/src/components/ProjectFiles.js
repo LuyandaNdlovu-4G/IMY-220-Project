@@ -5,6 +5,8 @@ import CheckInPopup from "./CheckInPopup"; // Assuming CheckInPopup is in its ow
 function ProjectFiles({ files, project, onEditProject, refreshFiles, canEdit }) {
   const [showEdit, setShowEdit] = useState(false);
   const [checkInFileId, setCheckInFileId] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const currentUserId = localStorage.getItem("userId");
 
   const handleCheckOutAndDownload = async (fileId) => {
@@ -75,6 +77,79 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles, canEdit }) 
     }
   };
 
+  const handleFileSelect = (e) => {
+    setSelectedFiles(Array.from(e.target.files));
+  };
+
+  const handleFileUpload = async () => {
+    if (selectedFiles.length === 0) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    selectedFiles.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await fetch(`http://localhost:3001/api/projects/${project._id}/files`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'user-id': userId
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        setSelectedFiles([]);
+        // Reset the file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) fileInput.value = '';
+        if (refreshFiles) {
+          refreshFiles();
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Error uploading files: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      alert('An error occurred while uploading files');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteFile = async (fileId, fileName) => {
+    if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
+      return;
+    }
+
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await fetch(`http://localhost:3001/api/projects/${project._id}/files/${fileId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'user-id': userId
+        }
+      });
+
+      if (response.ok) {
+        if (refreshFiles) {
+          refreshFiles();
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Error deleting file: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      alert('An error occurred while deleting the file');
+    }
+  };
+
   return (
     <div className="project-files">
       <h2>Files</h2>
@@ -99,22 +174,32 @@ function ProjectFiles({ files, project, onEditProject, refreshFiles, canEdit }) 
                   Check Out
                 </button>
               )}
-              {canEdit && file.status === "checkedOut" &&
-                file.checkedOutBy === currentUserId && (
-                  <button
-                    className="btn check-in-btn"
-                    onClick={() => handleCheckIn(file._id)}
-                  >
-                    Check In
-                  </button>
-                )}
+              {canEdit && file.status === "checkedOut" && (
+                <button
+                  className="btn check-in-btn"
+                  onClick={() => handleCheckIn(file._id)}
+                >
+                  Check In
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  className="btn delete-file-btn"
+                  onClick={() => handleDeleteFile(file._id, file.fileName)}
+                  title="Delete file"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
+      
+      
       {canEdit && (
         <button className="btn edit-btn" onClick={() => setShowEdit(true)}>
-          edit project
+          Edit Project
         </button>
       )}
       {showEdit && (

@@ -434,11 +434,16 @@ app.get("/api/projects/:id", async (req, res) => {
       project.members.map(async (m) => {
         const memberUser = await users.findOne(
           { _id: m.user },
-          { projection: { username: 1, email: 1 } }
+          { projection: { username: 1, email: 1, details: 1 } }
         );
         return {
           ...m,
-          user: memberUser ? { _id: m.user, username: memberUser.username, email: memberUser.email } : null
+          user: memberUser ? { 
+            _id: m.user, 
+            username: memberUser.username, 
+            email: memberUser.email,
+            details: memberUser.details 
+          } : null
         };
       })
     );
@@ -809,9 +814,17 @@ app.post("/api/files/:fileId/checkin", upload.single("file"), async (req, res) =
   const project = await projects.findOne({ "files._id": new ObjectId(fileId) });
   if (!project) return res.status(404).json({ message: "File not found in any project." });
 
+  // Check if user is owner or member
+  const isOwner = project.owner.toString() === userId;
+  const isMember = project.members.some(member => member.user.toString() === userId);
+  
+  if (!isOwner && !isMember) {
+    return res.status(403).json({ message: "Access denied. You must be a project member to check in files." });
+  }
+
   const fileToCheckIn = project.files.find(f => f._id.toString() === fileId);
-  if (fileToCheckIn.checkedOutBy?.toString() !== userId) {
-      return res.status(403).json({ message: "You cannot check in a file you did not check out." });
+  if (!fileToCheckIn) {
+    return res.status(404).json({ message: "File not found." });
   }
 
   // Update file metadata and status
@@ -1036,21 +1049,35 @@ app.put("/api/projects/:id", upload.array("files"), async (req, res) => {
       return res.status(404).json({ message: "Project not found." });
     }
 
-    if (project.owner.toString() !== userId) {
-      return res.status(403).json({ message: "Only the owner can edit this project." });
+    // Check if user is owner or a member for different permissions
+    const isOwner = project.owner.toString() === userId;
+    const isMember = project.members.some(member => member.user.toString() === userId);
+    
+    if (!isOwner && !isMember) {
+      return res.status(403).json({ message: "Only project members can edit this project." });
     }
 
-    // Prepare update fields
+    // Only owners can edit project metadata (name, description, etc.)
+    // Members can only upload files through this endpoint
     const updateFields = {};
-    if (projectName !== undefined) updateFields.projectName = projectName.trim();
-    if (description !== undefined) updateFields.description = description.trim();
-    if (hashtags !== undefined) {
-        const parsedHashtags = typeof hashtags === 'string' ? hashtags.split(',').map(tag => tag.trim().toLowerCase()) : [];
-        updateFields.hashtags = parsedHashtags;
+    
+    if (isOwner) {
+      // Owners can edit all project properties
+      if (projectName !== undefined) updateFields.projectName = projectName.trim();
+      if (description !== undefined) updateFields.description = description.trim();
+      if (hashtags !== undefined) {
+          const parsedHashtags = typeof hashtags === 'string' ? hashtags.split(',').map(tag => tag.trim().toLowerCase()) : [];
+          updateFields.hashtags = parsedHashtags;
+      }
+      if (type !== undefined) updateFields.type = type;
+      if (version !== undefined) updateFields.version = version;
+      updateFields.updatedAt = new Date();
+    } else {
+      // Members can only upload files, not edit project metadata
+      if (projectName !== undefined || description !== undefined || hashtags !== undefined || type !== undefined || version !== undefined) {
+        return res.status(403).json({ message: "Only project owners can edit project details." });
+      }
     }
-    if (type !== undefined) updateFields.type = type;
-    if (version !== undefined) updateFields.version = version;
-    updateFields.updatedAt = new Date();
 
     // Handle file uploads
     let newFiles = [];
@@ -1251,8 +1278,12 @@ app.post("/api/projects/:id/files", upload.array("files"), async (req, res) => {
   const project = await projects.findOne({ _id: new ObjectId(projectId) });
   if (!project) return res.status(404).json({ message: "Project not found." });
 
-  if (project.owner.toString() !== userId) {
-    return res.status(403).json({ message: "Only the project owner can add files." });
+  // Check if user is owner or a member of the project
+  const isOwner = project.owner.toString() === userId;
+  const isMember = project.members.some(member => member.user.toString() === userId);
+  
+  if (!isOwner && !isMember) {
+    return res.status(403).json({ message: "Only project members can add files." });
   }
 
   const newFiles = req.files.map(file => ({
@@ -1284,4 +1315,204 @@ app.post("/api/projects/:id/files", upload.array("files"), async (req, res) => {
   );
 
   res.status(201).json({ message: "Files uploaded successfully." });
+});
+
+// POST - ADD MEMBER TO PROJECT (owner only)
+app.post("/api/projects/:id/members", async (req, res) => {
+  try {
+    const projects = req.app.locals.projects;
+    const users = req.app.locals.users;
+    const activities = req.app.locals.activities;
+    const projectId = req.params.id;
+    const userId = req.headers['user-id'];
+    const { email, role } = req.body;
+
+    if (!ObjectId.isValid(projectId)) return res.status(400).json({ message: "Invalid project ID." });
+    if (!userId || !ObjectId.isValid(userId)) return res.status(401).json({ message: "Unauthorized." });
+    if (!email) return res.status(400).json({ message: "Email is required." });
+
+    const project = await projects.findOne({ _id: new ObjectId(projectId) });
+    if (!project) return res.status(404).json({ message: "Project not found." });
+
+    // Check if current user is the project owner
+    if (project.owner.toString() !== userId) {
+      return res.status(403).json({ message: "Only project owner can add members." });
+    }
+
+    // Find user by email
+    const userToAdd = await users.findOne({ email: email.trim() });
+    if (!userToAdd) return res.status(404).json({ message: "User with this email not found." });
+
+    // Check if user is already a member
+    const isAlreadyMember = project.members.some(member => member.user.toString() === userToAdd._id.toString());
+    if (isAlreadyMember) return res.status(409).json({ message: "User is already a member of this project." });
+
+    const newMember = {
+      user: userToAdd._id,
+      role: role || 'member',
+      joinedAt: new Date()
+    };
+
+    // Add member to project
+    await projects.updateOne(
+      { _id: new ObjectId(projectId) },
+      { $push: { members: newMember } }
+    );
+
+    // Log activity
+    await activities.insertOne({
+      type: "member_added",
+      project: new ObjectId(projectId),
+      user: new ObjectId(userId),
+      message: `${userToAdd.username} was added to the project`,
+      version: project.version,
+      createdAt: new Date()
+    });
+
+    // Return the new member with user details populated
+    const memberWithDetails = {
+      ...newMember,
+      user: {
+        _id: userToAdd._id,
+        username: userToAdd.username,
+        email: userToAdd.email,
+        details: userToAdd.details
+      }
+    };
+
+    res.status(201).json({ 
+      message: "Member added successfully.",
+      member: memberWithDetails
+    });
+
+  } catch (err) {
+    console.error("Add member error:", err);
+    res.status(500).json({ message: "Failed to add member." });
+  }
+});
+
+// DELETE - REMOVE MEMBER FROM PROJECT (owner only)
+app.delete("/api/projects/:id/members/:memberId", async (req, res) => {
+  try {
+    const projects = req.app.locals.projects;
+    const users = req.app.locals.users;
+    const activities = req.app.locals.activities;
+    const projectId = req.params.id;
+    const memberIdToRemove = req.params.memberId;
+    const userId = req.headers['user-id'];
+
+    if (!ObjectId.isValid(projectId)) return res.status(400).json({ message: "Invalid project ID." });
+    if (!ObjectId.isValid(memberIdToRemove)) return res.status(400).json({ message: "Invalid member ID." });
+    if (!userId || !ObjectId.isValid(userId)) return res.status(401).json({ message: "Unauthorized." });
+
+    const project = await projects.findOne({ _id: new ObjectId(projectId) });
+    if (!project) return res.status(404).json({ message: "Project not found." });
+
+    // Check if current user is the project owner
+    if (project.owner.toString() !== userId) {
+      return res.status(403).json({ message: "Only project owner can remove members." });
+    }
+
+    // Don't allow owner to remove themselves
+    if (memberIdToRemove === userId) {
+      return res.status(400).json({ message: "Project owner cannot remove themselves." });
+    }
+
+    // Check if the user is actually a member of the project
+    const memberExists = project.members.some(member => member.user.toString() === memberIdToRemove);
+    if (!memberExists) {
+      return res.status(404).json({ message: "User is not a member of this project." });
+    }
+
+    // Get member details for activity log
+    const memberToRemove = await users.findOne(
+      { _id: new ObjectId(memberIdToRemove) },
+      { projection: { username: 1 } }
+    );
+
+    // Remove member from project
+    await projects.updateOne(
+      { _id: new ObjectId(projectId) },
+      { $pull: { members: { user: new ObjectId(memberIdToRemove) } } }
+    );
+
+    // Log activity
+    await activities.insertOne({
+      type: "member_removed",
+      project: new ObjectId(projectId),
+      user: new ObjectId(userId),
+      message: `${memberToRemove?.username || 'A member'} was removed from the project`,
+      version: project.version,
+      createdAt: new Date()
+    });
+
+    res.json({ 
+      message: "Member removed successfully.",
+      removedMemberId: memberIdToRemove
+    });
+
+  } catch (err) {
+    console.error("Remove member error:", err);
+    res.status(500).json({ message: "Failed to remove member." });
+  }
+});
+
+// DELETE - REMOVE FILE FROM PROJECT (members can delete files)
+app.delete("/api/projects/:projectId/files/:fileId", async (req, res) => {
+  try {
+    const projects = req.app.locals.projects;
+    const activities = req.app.locals.activities;
+    const projectId = req.params.projectId;
+    const fileId = req.params.fileId;
+    const userId = req.headers['user-id'];
+
+    if (!ObjectId.isValid(projectId)) return res.status(400).json({ message: "Invalid project ID." });
+    if (!ObjectId.isValid(fileId)) return res.status(400).json({ message: "Invalid file ID." });
+    if (!userId || !ObjectId.isValid(userId)) return res.status(401).json({ message: "Unauthorized." });
+
+    const project = await projects.findOne({ _id: new ObjectId(projectId) });
+    if (!project) return res.status(404).json({ message: "Project not found." });
+
+    // Check if user is owner or a member of the project
+    const isOwner = project.owner.toString() === userId;
+    const isMember = project.members.some(member => member.user.toString() === userId);
+    
+    if (!isOwner && !isMember) {
+      return res.status(403).json({ message: "Only project members can delete files." });
+    }
+
+    // Check if file exists in the project
+    const fileExists = project.files.some(file => file._id.toString() === fileId);
+    if (!fileExists) {
+      return res.status(404).json({ message: "File not found in this project." });
+    }
+
+    // Get file details for activity log
+    const fileToDelete = project.files.find(file => file._id.toString() === fileId);
+
+    // Remove file from project
+    await projects.updateOne(
+      { _id: new ObjectId(projectId) },
+      { $pull: { files: { _id: new ObjectId(fileId) } } }
+    );
+
+    // Log activity
+    await activities.insertOne({
+      type: "file_deleted",
+      project: new ObjectId(projectId),
+      user: new ObjectId(userId),
+      message: `Deleted file: ${fileToDelete.fileName}`,
+      version: project.version,
+      createdAt: new Date()
+    });
+
+    res.json({ 
+      message: "File deleted successfully.",
+      deletedFileId: fileId
+    });
+
+  } catch (err) {
+    console.error("Delete file error:", err);
+    res.status(500).json({ message: "Failed to delete file." });
+  }
 });
