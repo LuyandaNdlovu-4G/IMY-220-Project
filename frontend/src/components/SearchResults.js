@@ -42,7 +42,7 @@ function SearchResults({ searchResults, isVisible, onClose, searchQuery }) {
           <div className="search-results-content">
             {users.length > 0 && (
               <div className="search-section">
-                <h4 className="section-title"> Users ({users.length})</h4>
+                <h4 className="section-title">Users ({users.length})</h4>
                 <div className="search-items">
                   {users.map(user => (
                     <Link 
@@ -90,7 +90,7 @@ function SearchResults({ searchResults, isVisible, onClose, searchQuery }) {
             
             {projects.length > 0 && (
               <div className="search-section">
-                <h4 className="section-title"> Projects ({projects.length})</h4>
+                <h4 className="section-title">Projects ({projects.length})</h4>
                 <div className="search-items">
                   {projects.map(project => (
                     <Link 
@@ -100,7 +100,6 @@ function SearchResults({ searchResults, isVisible, onClose, searchQuery }) {
                       onClick={onClose}
                     >
                       <div className="search-item-icon">
-                        📁
                       </div>
                       <div className="search-item-content">
                         <div className="search-item-title">

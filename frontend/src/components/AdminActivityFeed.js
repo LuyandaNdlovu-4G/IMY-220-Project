@@ -16,17 +16,17 @@ function AdminActivityFeed({ activities, onActivityAction }) {
   const getActivityIcon = (type) => {
     switch (type) {
       case 'project_created':
-        return '📁';
+        return '';
       case 'file_uploaded':
-        return '📄';
+        return '';
       case 'checkout_file':
-        return '📥';
+        return '';
       case 'checkin_file':
-        return '📤';
+        return '';
       case 'user_joined':
-        return '👥';
+        return '';
       default:
-        return '📊';
+        return '';
     }
   };
 

@@ -162,9 +162,9 @@ function Header() {
 return (
     <header className="header">
       <div className="left-group">
-        <div className="logo">
+        <Link to={isLoggedIn ? "/home" : "/"} className="logo">
           <img src="/assets/images/Code Cave Logo.png" alt="Code Cave Logo" className="logo-img" />
-        </div>
+        </Link>
         <nav className="nav-links">
           <ul>
             <li><Link to="/home">Home</Link></li>

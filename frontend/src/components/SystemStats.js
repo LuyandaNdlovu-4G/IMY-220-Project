@@ -7,7 +7,7 @@ function SystemStats({ stats }) {
       
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon"></div>
           <div className="stat-info">
             <h3>Total Users</h3>
             <p className="stat-number">{stats.totalUsers}</p>
@@ -15,7 +15,7 @@ function SystemStats({ stats }) {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📁</div>
+          <div className="stat-icon"></div>
           <div className="stat-info">
             <h3>Total Projects</h3>
             <p className="stat-number">{stats.totalProjects}</p>
@@ -23,7 +23,7 @@ function SystemStats({ stats }) {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📊</div>
+          <div className="stat-icon"></div>
           <div className="stat-info">
             <h3>Total Activities</h3>
             <p className="stat-number">{stats.totalActivities}</p>

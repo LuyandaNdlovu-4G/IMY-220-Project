@@ -174,21 +174,41 @@ function ProfilePage() {
             </>
           )}
           <div className="profile-sections">
-            <div className="section">
-              <h2>Projects</h2>
-              {projectsData.map((project, index) => (
-                <p key={project._id || index}>
-                  <Link to={`/projects/${project._id}`}>{project.projectName || project.name}</Link>
-                </p>
-              ))}
+            <div className="section projects-section">
+              <h2 className="section-title">Projects</h2>
+              <div className="section-container">
+                {projectsData.length === 0 ? (
+                  <div className="empty-state">No projects yet</div>
+                ) : (
+                  <div className="items-list">
+                    {projectsData.map((project, index) => (
+                      <div key={project._id || index} className="list-item project-item">
+                        <Link to={`/projects/${project._id}`} className="profile-link project-link">
+                          {project.projectName || project.name}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="section">
-              <h2>Friends</h2>
-              {friendsData.map((friend, index) => (
-                <p key={friend._id || index}>
-                  <Link to={`/profile/${friend._id}`}>{friend.username || friend.name}</Link>
-                </p>
-              ))}
+            <div className="section friends-section">
+              <h2 className="section-title">Friends</h2>
+              <div className="section-container">
+                {friendsData.length === 0 ? (
+                  <div className="empty-state">No friends yet</div>
+                ) : (
+                  <div className="items-list">
+                    {friendsData.map((friend, index) => (
+                      <div key={friend._id || index} className="list-item friend-item">
+                        <Link to={`/profile/${friend._id}`} className="profile-link friend-link">
+                          {friend.username || friend.name}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
