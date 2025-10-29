@@ -1,8 +1,8 @@
 import React from 'react';
+import { getRandomUserIcon } from '../utils/userUtils';
 
 function ProfileInfo({ profile }) {
-  const defaultImg = '/assets/images/User Icon.png';
-  const avatarSrc = profile.details?.avatar ? profile.details.avatar : defaultImg;
+  const avatarSrc = profile.details?.avatar || getRandomUserIcon(profile._id);
 
   return (
     <div className="profile-info">

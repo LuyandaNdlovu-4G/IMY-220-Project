@@ -1,14 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getRandomUserIcon } from '../utils/userUtils';
 
 function FriendCard({ friend, activities, onRemove }) {
-  
-  const avatarLetter = friend.username ? friend.username.charAt(0).toUpperCase() : '?';
 
   return (
     <div className="friend-card">
       <div className="friend-card-top">
-        <div className="friend-icon">{avatarLetter}</div>
+        <div className="friend-icon">
+          <img 
+            src={friend.details?.avatar || getRandomUserIcon(friend._id)} 
+            alt={friend.username} 
+            className="friend-avatar-img"
+          />
+        </div>
         <div className="friend-info">
           <Link to={`/profile/${friend._id}`} className="friend-profile-link">
             <div className="friend-name">{friend.username}</div>

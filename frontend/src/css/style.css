@@ -2357,3 +2357,16 @@ body {
   border: 1px solid #dc3545;
   color: #dc3545;
 }
+
+/* Random User Icon Styles */
+.friend-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Update friend-icon to handle image overflow */
+.friend-card .friend-icon {
+  overflow: hidden !important;
+}

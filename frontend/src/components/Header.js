@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchResults from './SearchResults';
+import { getRandomUserIcon } from '../utils/userUtils';
 
 
 
@@ -201,7 +202,7 @@ return (
           <Link to="/profile" className="profile-link">{username}</Link>
           <Link to="/profile">
             <img 
-              src={userAvatar || "/assets/images/User Icon.png"} 
+              src={userAvatar || getRandomUserIcon(localStorage.getItem('userId'))} 
               alt="User Icon" 
               className="user-icon" 
             />

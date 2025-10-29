@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getRandomUserIcon } from '../utils/userUtils';
 
 function SearchResults({ searchResults, isVisible, onClose, searchQuery }) {
   if (!isVisible || !searchResults) {
@@ -52,13 +53,10 @@ function SearchResults({ searchResults, isVisible, onClose, searchQuery }) {
                       onClick={onClose}
                     >
                       <div className="search-item-avatar">
-                        {user.details?.avatar ? (
-                          <img src={user.details.avatar} alt={user.username} />
-                        ) : (
-                          <div className="default-avatar">
-                            {user.username?.charAt(0)?.toUpperCase() || '?'}
-                          </div>
-                        )}
+                        <img 
+                          src={user.details?.avatar || getRandomUserIcon(user._id)} 
+                          alt={user.username} 
+                        />
                       </div>
                       <div className="search-item-content">
                         <div className="search-item-title">
