@@ -10,9 +10,7 @@ const root = createRoot(rootElement);
 
 // Render your App component wrapped in BrowserRouter
 root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
 );

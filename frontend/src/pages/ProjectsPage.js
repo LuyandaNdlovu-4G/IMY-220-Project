@@ -24,7 +24,33 @@ function ProjectsPage() {
 
   // Fetch projects from backend on mount
   useEffect(() => {
-    fetchProjects();
+    if (!userId) return;
+
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    fetch(`http://localhost:3001/api/projects/mine?userId=${userId}`, { 
+      credentials: 'include',
+      signal
+    })
+      .then(res => {
+        if (!signal.aborted && res.ok) {
+          return res.json();
+        }
+        throw new Error('Aborted or failed');
+      })
+      .then(data => {
+        if (!signal.aborted) setProjectsData(data);
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError' && !signal.aborted) {
+          console.error('Error fetching projects:', error);
+        }
+      });
+
+    return () => {
+      abortController.abort();
+    };
   }, [userId]);
 
   // Create new project via backend

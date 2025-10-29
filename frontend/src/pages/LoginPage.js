@@ -29,6 +29,7 @@ function LoginPage() {
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('email', data.user.email);
+        localStorage.setItem('userRole', data.user.role || 'user');
 
         navigate('/home');
       } else {

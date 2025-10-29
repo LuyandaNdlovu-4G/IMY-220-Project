@@ -22,6 +22,9 @@ function ProfilePage() {
   useEffect(() => {
     if (!userIdToFetch) return;
 
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
     const profileUrl = isOwnProfile 
       ? 'http://localhost:3001/api/profile' 
       : `http://localhost:3001/api/users/${userIdToFetch}/profile`;
@@ -30,35 +33,89 @@ function ProfilePage() {
 
     // Fetch combined profile data if viewing another user's profile
     if (!isOwnProfile) {
-      fetch(profileUrl, { headers })
-        .then(res => res.json())
+      fetch(profileUrl, { headers, signal })
+        .then(res => {
+          if (!signal.aborted && res.ok) return res.json();
+          throw new Error('Aborted or failed');
+        })
         .then(data => {
-          setProfileData(data.profile);
-          setProjectsData(data.projects || []);
-          setFriendsData(data.friends || []);
+          if (!signal.aborted) {
+            setProfileData(data.profile);
+            setProjectsData(data.projects || []);
+            setFriendsData(data.friends || []);
+          }
+        })
+        .catch(err => {
+          if (err.name !== 'AbortError' && !signal.aborted) {
+            console.error('Failed to fetch profile:', err);
+          }
         });
     } else {
       // Original fetches for own profile
-      fetch('http://localhost:3001/api/profile', { headers })
-        .then(res => res.json())
-        .then(data => setProfileData(data));
+      fetch('http://localhost:3001/api/profile', { headers, signal })
+        .then(res => {
+          if (!signal.aborted && res.ok) return res.json();
+          throw new Error('Aborted or failed');
+        })
+        .then(data => {
+          if (!signal.aborted) setProfileData(data);
+        })
+        .catch(err => {
+          if (err.name !== 'AbortError' && !signal.aborted) {
+            console.error('Failed to fetch profile:', err);
+          }
+        });
       
-      fetch(`http://localhost:3001/api/projects/mine?userId=${loggedInUserId}`, { headers })
-        .then(res => res.json())
-        .then(data => setProjectsData(data));
+      fetch(`http://localhost:3001/api/projects/mine?userId=${loggedInUserId}`, { headers, signal })
+        .then(res => {
+          if (!signal.aborted && res.ok) return res.json();
+          throw new Error('Aborted or failed');
+        })
+        .then(data => {
+          if (!signal.aborted) setProjectsData(data);
+        })
+        .catch(err => {
+          if (err.name !== 'AbortError' && !signal.aborted) {
+            console.error('Failed to fetch projects:', err);
+          }
+        });
 
-      fetch('http://localhost:3001/api/friends', { headers })
-        .then(res => res.json())
-        .then(data => setFriendsData(data));
+      fetch('http://localhost:3001/api/friends', { headers, signal })
+        .then(res => {
+          if (!signal.aborted && res.ok) return res.json();
+          throw new Error('Aborted or failed');
+        })
+        .then(data => {
+          if (!signal.aborted) setFriendsData(data);
+        })
+        .catch(err => {
+          if (err.name !== 'AbortError' && !signal.aborted) {
+            console.error('Failed to fetch friends:', err);
+          }
+        });
     }
 
     // Fetch activity feed (always for the displayed user)
     fetch(`http://localhost:3001/api/activity/local`, { 
-        headers: { 'user-id': userIdToFetch }
+        headers: { 'user-id': userIdToFetch },
+        signal
     })
-      .then(res => res.json())
-      .then(data => setActivityFeedData(data));
+      .then(res => {
+        if (!signal.aborted && res.ok) return res.json();
+        throw new Error('Aborted or failed');
+      })
+      .then(data => {
+        if (!signal.aborted) setActivityFeedData(data);
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError' && !signal.aborted) {
+          console.error('Failed to fetch activity:', err);
+        }
+      });
 
+    return () => {
+      abortController.abort();
+    };
   }, [userIdToFetch, isOwnProfile, loggedInUserId]);
 
   const handleEditProfile = async (formData) => {

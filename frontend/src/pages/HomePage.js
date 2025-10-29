@@ -23,28 +23,58 @@ function HomePage() {
   };
 
      useEffect(() => {
-      if (userId) {
-        fetchProjects();
-        
-        // Fetch local activities (user + friends) instead of global activities
-        fetch(`http://localhost:3001/api/activity/local`, { 
-          credentials: 'include',
-          headers: {
-            'user-id': userId
+      if (!userId) return;
+
+      const abortController = new AbortController();
+      const signal = abortController.signal;
+
+      // Fetch projects
+      fetch(`http://localhost:3001/api/projects/mine?userId=${userId}`, { 
+        credentials: 'include',
+        signal
+      })
+        .then(res => {
+          if (!signal.aborted && res.ok) {
+            return res.json();
           }
+          throw new Error('Aborted or failed');
         })
-          .then(res => {
-            if (res.ok) {
-              return res.json();
-            }
-            throw new Error('Failed to fetch activities');
-          })
-          .then(data => setActivities(data))
-          .catch(error => {
+        .then(data => {
+          if (!signal.aborted) setProjects(data);
+        })
+        .catch(error => {
+          if (error.name !== 'AbortError' && !signal.aborted) {
+            console.error('Error fetching projects:', error);
+          }
+        });
+        
+      // Fetch local activities (user + friends) instead of global activities
+      fetch(`http://localhost:3001/api/activity/local`, { 
+        credentials: 'include',
+        headers: {
+          'user-id': userId
+        },
+        signal
+      })
+        .then(res => {
+          if (!signal.aborted && res.ok) {
+            return res.json();
+          }
+          throw new Error('Aborted or failed');
+        })
+        .then(data => {
+          if (!signal.aborted) setActivities(data);
+        })
+        .catch(error => {
+          if (error.name !== 'AbortError' && !signal.aborted) {
             console.error('Error fetching activities:', error);
             setActivities([]); // Set empty array on error
-          });
-      }
+          }
+        });
+
+      return () => {
+        abortController.abort();
+      };
     }, [userId]);
 
 

@@ -43,8 +43,68 @@ function FriendsPage() {
 
   // Fetch friends on mount
   useEffect(() => {
-    fetchFriends();
-    fetchLocalActivity();
+    if (!userId) return;
+
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    // Fetch friends
+    fetch('http://localhost:3001/api/friends', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      },
+      signal
+    })
+      .then(res => {
+        if (!signal.aborted && res.ok) {
+          return res.json();
+        }
+        throw new Error('Aborted or failed');
+      })
+      .then(data => {
+        if (!signal.aborted) setFriends(data || []);
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError' && !signal.aborted) {
+          console.error('Error fetching friends:', error);
+        }
+      });
+
+    // Fetch local activity
+    fetch('http://localhost:3001/api/activity/local', { 
+      credentials: 'include',
+      headers: {
+        'user-id': userId
+      },
+      signal
+    })
+      .then(res => {
+        if (!signal.aborted && res.ok) {
+          return res.json();
+        }
+        throw new Error('Aborted or failed');
+      })
+      .then(data => {
+        if (!signal.aborted) {
+          const grouped = {};
+          data.forEach(act => {
+            const activityUser = act.user._id || act.user;
+            if (!grouped[activityUser]) grouped[activityUser] = [];
+            grouped[activityUser].push(act);
+          });
+          setActivities(grouped);
+        }
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError' && !signal.aborted) {
+          console.error('Error fetching activity:', error);
+        }
+      });
+
+    return () => {
+      abortController.abort();
+    };
   }, [userId]);
 
   const handleAddFriend = async (e) => {

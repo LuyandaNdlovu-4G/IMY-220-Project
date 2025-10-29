@@ -20,16 +20,23 @@ function ProjectView() {
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
     // Fetch project details
     fetch(`http://localhost:3001/api/projects/${id}`, { 
       credentials: 'include',
       headers: {
         'user-id': userId
-      }
+      },
+      signal
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!signal.aborted && res.ok) return res.json();
+        throw new Error('Aborted or failed');
+      })
       .then(data => {
-        if (data && data.owner) {
+        if (!signal.aborted && data && data.owner) {
           setProject(data);
           setFiles(data.files || []);
           setMembers(data.members || []);
@@ -40,6 +47,11 @@ function ProjectView() {
           setCanEdit(isOwner || isMember); // Can edit files
           setIsOwner(isOwner); // Can edit project settings
         }
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError' && !signal.aborted) {
+          console.error('Failed to fetch project:', err);
+        }
       });
 
     // Fetch project activity
@@ -47,10 +59,25 @@ function ProjectView() {
       credentials: 'include',
       headers: {
         'user-id': userId
-      }
+      },
+      signal
     })
-      .then(res => res.json())
-      .then(data => setActivities(data.activities || []));
+      .then(res => {
+        if (!signal.aborted && res.ok) return res.json();
+        throw new Error('Aborted or failed');
+      })
+      .then(data => {
+        if (!signal.aborted) setActivities(data.activities || []);
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError' && !signal.aborted) {
+          console.error('Failed to fetch activity:', err);
+        }
+      });
+
+    return () => {
+      abortController.abort();
+    };
   }, [id]);
 
 
