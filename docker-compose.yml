@@ -24,12 +24,12 @@ services:
       - imy220-net
 
   frontend:
-    image: luyandandlovu/imy220-frontend
+    build: ./frontend
     container_name: imy220-project-frontend
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://backend:3001
+      - REACT_APP_API_URL=http://localhost:3001
     depends_on:
       - backend
     networks:

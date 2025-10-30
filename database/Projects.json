@@ -1,0 +1,642 @@
+[{
+  "_id": {
+    "$oid": "68de8a5e8ebd2e78ef58cf85"
+  },
+  "projectName": "Main User Project 2",
+  "description": "This is my second project",
+  "hashtags": [
+    "main",
+    "project2"
+  ],
+  "type": "mobile app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68d3dc96be4c137f5c69b707"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68d3dc96be4c137f5c69b707"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-02T14:21:18.534Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-02T14:21:18.534Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-02T14:21:18.534Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68de8a948ebd2e78ef58cf87"
+  },
+  "projectName": "Luyanda's Main Testing Project",
+  "description": "Main Testing project",
+  "hashtags": [
+    "project1"
+  ],
+  "type": "web application",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68de2171902fd760b3c13d70"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68de2171902fd760b3c13d70"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-02T14:22:12.500Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "_id": {
+        "$oid": "68f119c34c775b2ac679e684"
+      },
+      "fileName": "package.json",
+      "filePath": "C:\\Users\\luyan\\Documents\\University\\2nd year\\2nd Semester\\IMY 220\\IMY-220-Project\\backend\\uploads\\e45a0c7dfcc04bad486acc17eb640cd0",
+      "uploadedBy": {
+        "$oid": "68de2171902fd760b3c13d70"
+      },
+      "uploadedAt": {
+        "$date": "2025-10-20T08:01:44.605Z"
+      },
+      "size": 470,
+      "mimeType": "application/json",
+      "status": "checkedIn",
+      "checkedOutBy": null
+    },
+    {
+      "_id": {
+        "$oid": "68fd138ee0c3ddbf6b62e691"
+      },
+      "fileName": "index.html",
+      "filePath": "C:\\Users\\luyan\\Documents\\University\\2nd year\\2nd Semester\\IMY 220\\IMY-220-Project\\backend\\uploads\\160830b7a8b4d96a3d47750f596753f4",
+      "uploadedBy": {
+        "$oid": "68de2171902fd760b3c13d70"
+      },
+      "uploadedAt": {
+        "$date": "2025-10-25T18:14:38.853Z"
+      },
+      "size": 2750,
+      "mimeType": "text/html",
+      "status": "checkedIn",
+      "checkedOutBy": null
+    }
+  ],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-02T14:22:12.500Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-25T18:14:38.853Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae06"
+  },
+  "projectName": "alice's Project",
+  "description": "Project by alice",
+  "hashtags": [
+    "demo",
+    "alice"
+  ],
+  "type": "mobile app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98adfc"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98adfc"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.108Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.108Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T05:51:44.322Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae07"
+  },
+  "projectName": "bob's Project",
+  "description": "Project by bob",
+  "hashtags": [
+    "demo",
+    "bob"
+  ],
+  "type": "game",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98adfd"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98adfd"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.178Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.178Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.178Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae08"
+  },
+  "projectName": "carol's Project",
+  "description": "Project by carol",
+  "hashtags": [
+    "demo",
+    "carol"
+  ],
+  "type": "mobile app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98adfe"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98adfe"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.249Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.249Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.249Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae09"
+  },
+  "projectName": "dave's Projects",
+  "description": "Project by dave",
+  "hashtags": [
+    "demo",
+    "dave"
+  ],
+  "type": "desktop app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98adff"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98adff"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.319Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.319Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T01:18:40.828Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae0b"
+  },
+  "projectName": "frank's Project",
+  "description": "Project by frank",
+  "hashtags": [
+    "demo",
+    "frank"
+  ],
+  "type": "other",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98ae01"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98ae01"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.491Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.491Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.491Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae0c"
+  },
+  "projectName": "grace's Project",
+  "description": "Project by grace",
+  "hashtags": [
+    "demo",
+    "grace"
+  ],
+  "type": "web application",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98ae02"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98ae02"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.561Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.561Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.561Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae0d"
+  },
+  "projectName": "heidi's Project",
+  "description": "Project by heidi",
+  "hashtags": [
+    "demo",
+    "heidi"
+  ],
+  "type": "game",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1633cbf4f7479e98ae03"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1633cbf4f7479e98ae03"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.632Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.632Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.632Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae0e"
+  },
+  "projectName": "ivan's Project",
+  "description": "Project by ivan",
+  "hashtags": [
+    "demo",
+    "ivan"
+  ],
+  "type": "mobile app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1633cbf4f7479e98ae04"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1633cbf4f7479e98ae04"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.699Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.699Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.699Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae0f"
+  },
+  "projectName": "judy's Project",
+  "description": "Project by judy",
+  "hashtags": [
+    "demo",
+    "judy"
+  ],
+  "type": "desktop app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1633cbf4f7479e98ae05"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1633cbf4f7479e98ae05"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T00:17:55.766Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.766Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T00:17:55.766Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df64d2e0e356f900f0c1da"
+  },
+  "projectName": "Success",
+  "description": "Maybach",
+  "hashtags": [
+    ""
+  ],
+  "type": "desktop app",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98adfc"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98adfc"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T05:53:22.331Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T05:53:22.331Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T05:54:18.267Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df6b51e0e356f900f0c1e0"
+  },
+  "projectName": "srtyuio",
+  "description": "Nicw",
+  "hashtags": [
+    "web"
+  ],
+  "type": "game",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1632cbf4f7479e98ae01"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1632cbf4f7479e98ae01"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-03T06:21:05.614Z"
+      }
+    }
+  ],
+  "files": [],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-03T06:21:05.614Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-03T06:22:06.686Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68ee8a1eb21dbadf50052247"
+  },
+  "projectName": "Please Work",
+  "description": "Redoing D2",
+  "hashtags": [
+    "react",
+    "node"
+  ],
+  "type": "web application",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68de2171902fd760b3c13d70"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68de2171902fd760b3c13d70"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-14T17:36:30.028Z"
+      }
+    },
+    {
+      "user": {
+        "$oid": "68df215b75d26cd1bda24bff"
+      },
+      "role": "member",
+      "joinedAt": {
+        "$date": "2025-10-29T11:23:45.165Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "_id": {
+        "$oid": "6901f966eefc9af819d3c488"
+      },
+      "fileName": ".gitignore",
+      "filePath": "C:\\Users\\luyan\\Documents\\University\\2nd year\\2nd Semester\\IMY 220\\IMY-220-Project\\backend\\uploads\\9bf62fadcc8c80758caf3873bf96f06f",
+      "uploadedBy": {
+        "$oid": "68de2171902fd760b3c13d70"
+      },
+      "uploadedAt": {
+        "$date": "2025-10-29T11:24:22.498Z"
+      },
+      "size": 27,
+      "mimeType": "text/plain",
+      "status": "checkedIn",
+      "checkedOutBy": null
+    }
+  ],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-14T17:36:30.028Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-29T11:24:22.498Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68f73873cc9bc3317e84f560"
+  },
+  "projectName": "Test User Project",
+  "description": "Bloat up friend projects.",
+  "hashtags": [
+    "html"
+  ],
+  "type": "web application",
+  "version": "v1.0.0",
+  "owner": {
+    "$oid": "68df1697a1e3b6216695105b"
+  },
+  "members": [
+    {
+      "user": {
+        "$oid": "68df1697a1e3b6216695105b"
+      },
+      "role": "owner",
+      "joinedAt": {
+        "$date": "2025-10-21T07:38:27.658Z"
+      }
+    },
+    {
+      "user": {
+        "$oid": "68de2171902fd760b3c13d70"
+      },
+      "role": "member",
+      "joinedAt": {
+        "$date": "2025-10-21T08:08:54.781Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "_id": {
+        "$oid": "68f7388ecc9bc3317e84f562"
+      },
+      "fileName": "index.js",
+      "filePath": "C:\\Users\\luyan\\Documents\\University\\2nd year\\2nd Semester\\IMY 220\\IMY-220-Project\\backend\\uploads\\e34e8d5252c946f2ec21035b6f517b44",
+      "uploadedBy": {
+        "$oid": "68df1697a1e3b6216695105b"
+      },
+      "uploadedAt": {
+        "$date": "2025-10-21T09:01:42.088Z"
+      },
+      "size": 851,
+      "mimeType": "text/javascript",
+      "status": "checkedIn",
+      "checkedOutBy": null
+    },
+    {
+      "_id": {
+        "$oid": "68f7391dcc9bc3317e84f563"
+      },
+      "fileName": "taskHandler.js",
+      "filePath": "C:\\Users\\luyan\\Documents\\University\\2nd year\\2nd Semester\\IMY 220\\IMY-220-Project\\backend\\uploads\\66f3d53d0bab8101ae265ab6f2896ef9",
+      "uploadedBy": {
+        "$oid": "68df1697a1e3b6216695105b"
+      },
+      "uploadedAt": {
+        "$date": "2025-10-21T08:59:29.136Z"
+      },
+      "size": 1054,
+      "mimeType": "text/javascript",
+      "status": "checkedIn",
+      "checkedOutBy": null
+    }
+  ],
+  "status": "checkedIn",
+  "checkedOutBy": null,
+  "createdAt": {
+    "$date": "2025-10-21T07:38:27.658Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-21T09:01:42.130Z"
+  }
+}]

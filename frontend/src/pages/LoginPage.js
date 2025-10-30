@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthHeader from '../components/AuthHeader';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function LoginPage() {
 
@@ -72,7 +72,7 @@ function LoginPage() {
             {errorMsg && <div className="error-msg">{errorMsg}</div>}
             <button type="submit" className="btn auth-btn">Log in</button>
           </form>
-          <p className="form-link">Don't have an account? <a href="/signup">Sign up</a></p>
+          <p className="form-link">Don't have an account? <Link to="/signup">Sign up</Link></p>
         </div>
       </div>
     </div>

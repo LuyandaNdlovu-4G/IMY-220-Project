@@ -1,0 +1,396 @@
+[{
+  "_id": {
+    "$oid": "68de2171902fd760b3c13d70"
+  },
+  "username": "Luyanda",
+  "email": "luyanda.ndlovu4@gmail.com",
+  "password": "@RiGGZ1234",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-02T06:53:37.798Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1632cbf4f7479e98adfc"
+    },
+    {
+      "$oid": "68df1697a1e3b6216695105b"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68de79a6c02287fc01c63ba4"
+    },
+    {
+      "$oid": "68de79acc02287fc01c63ba5"
+    },
+    {
+      "$oid": "68de8a948ebd2e78ef58cf87"
+    },
+    {
+      "$oid": "68ee8a1eb21dbadf50052247"
+    }
+  ],
+  "details": {
+    "avatar": "/uploads/69549547e6abd5ac82c05fcaf8baa55b",
+    "bio": "Welcome to my IMY 220 Project",
+    "location": "PTA"
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1632cbf4f7479e98adfc"
+  },
+  "username": "alice",
+  "email": "alice@example.com",
+  "password": "pass1",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:54.716Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1632cbf4f7479e98adfd"
+    },
+    {
+      "$oid": "68de2171902fd760b3c13d70"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae06"
+    },
+    {
+      "$oid": "68df64d2e0e356f900f0c1da"
+    }
+  ],
+  "details": {
+    "bio": "alice's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1632cbf4f7479e98adfd"
+  },
+  "username": "bob",
+  "email": "bob@example.com",
+  "password": "pass2",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:54.759Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1632cbf4f7479e98adfc"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae07"
+    }
+  ],
+  "details": {
+    "bio": "bob's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1632cbf4f7479e98adfe"
+  },
+  "username": "carol",
+  "email": "carol@example.com",
+  "password": "pass3",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:54.793Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1632cbf4f7479e98adff"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae08"
+    }
+  ],
+  "details": {
+    "bio": "carol's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1632cbf4f7479e98adff"
+  },
+  "username": "dave",
+  "email": "dave@example.com",
+  "password": "pass4",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:54.837Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1632cbf4f7479e98adfe"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae09"
+    }
+  ],
+  "details": {
+    "bio": "dave's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1632cbf4f7479e98ae01"
+  },
+  "username": "frank",
+  "email": "frank@example.com",
+  "password": "pass6",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:54.906Z"
+  },
+  "friends": [],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae0b"
+    },
+    {
+      "$oid": "68df6b51e0e356f900f0c1e0"
+    }
+  ],
+  "details": {
+    "bio": "frank's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1632cbf4f7479e98ae02"
+  },
+  "username": "grace",
+  "email": "grace@example.com",
+  "password": "pass7",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:54.964Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae03"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae0c"
+    }
+  ],
+  "details": {
+    "bio": "grace's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  },
+  "banned": true,
+  "bannedAt": {
+    "$date": "2025-10-25T19:02:52.417Z"
+  },
+  "bannedReason": "Testing"
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae03"
+  },
+  "username": "heidi",
+  "email": "heidi@example.com",
+  "password": "pass8",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.000Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1632cbf4f7479e98ae02"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae0d"
+    }
+  ],
+  "details": {
+    "bio": "heidi's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae04"
+  },
+  "username": "ivan",
+  "email": "ivan@example.com",
+  "password": "pass9",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.035Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae05"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae0e"
+    }
+  ],
+  "details": {
+    "bio": "ivan's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1633cbf4f7479e98ae05"
+  },
+  "username": "judy",
+  "email": "judy@example.com",
+  "password": "pass10",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:17:55.072Z"
+  },
+  "friends": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae04"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68df1633cbf4f7479e98ae0f"
+    }
+  ],
+  "details": {
+    "bio": "judy's bio",
+    "avatar": "",
+    "location": "Earth",
+    "skills": [
+      "js",
+      "mongodb"
+    ]
+  }
+},
+{
+  "_id": {
+    "$oid": "68df1697a1e3b6216695105b"
+  },
+  "username": "testuser",
+  "email": "testuser@testuser.com",
+  "password": "mypassword123",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T00:19:35.535Z"
+  },
+  "friends": [
+    {
+      "$oid": "68de2171902fd760b3c13d70"
+    }
+  ],
+  "createdProjects": [
+    {
+      "$oid": "68f73873cc9bc3317e84f560"
+    }
+  ],
+  "details": {
+    "bio": "",
+    "avatar": "/uploads/8ac6cb3b43e65d1c8a69fed2a1c70216",
+    "location": "",
+    "skills": []
+  }
+},
+{
+  "_id": {
+    "$oid": "68df215b75d26cd1bda24bff"
+  },
+  "username": "test-user",
+  "email": "test@example.com",
+  "password": "mypassword123",
+  "role": "admin",
+  "createdAt": {
+    "$date": "2025-10-03T01:05:31.797Z"
+  },
+  "friends": [],
+  "createdProjects": [],
+  "details": {
+    "bio": "I am the Final Boss ",
+    "avatar": "/uploads/08363ece76d7ba8fe5821f372ed4123b",
+    "location": "Not Here",
+    "skills": []
+  }
+},
+{
+  "_id": {
+    "$oid": "68df6acae0e356f900f0c1df"
+  },
+  "username": "u24580717",
+  "email": "u24580717@tuks.co.za",
+  "password": "password123",
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-10-03T06:18:50.427Z"
+  },
+  "friends": [],
+  "createdProjects": [],
+  "details": {
+    "bio": "",
+    "avatar": "",
+    "location": "",
+    "skills": []
+  }
+}]
